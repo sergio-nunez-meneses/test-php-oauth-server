@@ -26,7 +26,7 @@ class UserController
       $error_msg .= "Username can't be empty <br>";
     }
 
-    $username = $inputs['username'];
+    $username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_STRING);
 
     if (empty($inputs['password']))
     {
@@ -34,7 +34,7 @@ class UserController
       $error_msg .= "Password can't be empty <br>";
     }
 
-    $password = $inputs['password'];
+    $password = filter_input(INPUT_POST, 'password', FILTER_DEFAULT);
 
     if ($error)
     {
