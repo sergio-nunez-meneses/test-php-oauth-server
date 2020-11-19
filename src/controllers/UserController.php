@@ -42,7 +42,7 @@ class UserController
     }
 
     $user_model = new UserModel;
-    $user = $user_model->find_one($username);
+    $user = $user_model->find_by_name($username);
 
     if (empty($user))
     {
@@ -60,8 +60,15 @@ class UserController
 
     // $user_id = $user_model->get_id($inputs['license']);
     // generate JWT and store it as 'HTTP_AUTHORIZATION' or 'Authorization' HTTP header
-    // redirect user to PaaS
+    $token = (new JWTController)->generate($user['id']);
+
+    if (empty($token))
+    {
+      $error_msg .= "Token couldn't be generated <br>";
+    }
+
     $success_msg .= 'Connection success! <br>';
+    echo "token: <br>$token<br>";
     echo $success_msg;
   }
 }
