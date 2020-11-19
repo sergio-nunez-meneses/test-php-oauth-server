@@ -21,7 +21,7 @@ abstract class DatabaseModel
       return false;
     }
 
-    echo 'Connected to ' . DB_NAME . '.<br>'; // for debugging
+    // echo 'Connected to ' . DB_NAME . '.<br>'; // for debugging
     return true;
   }
 
@@ -36,7 +36,8 @@ abstract class DatabaseModel
       else
       {
         $stmt = $this->pdo->prepare($sql);
-        return $stmt->execute($placeholders);
+        $stmt->execute($placeholders);
+        return $stmt;
       }
     }
   }
