@@ -69,12 +69,14 @@ class UserController
     }
 
     echo 'Connection success!<br>';
-    echo "<br>Your token: $token<br>";
+    echo "<br>Your token: <em>$token</em><br>";
 
     if (!(new JWTController)->verify($token))
     {
       $error_msg .= "Token's signature couldn't be verified <br>";
       throw new \Exception($error_msg);
     }
+
+    echo "<strong>is valid</strong>!<br>";
   }
 }

@@ -16,6 +16,8 @@
 
     if ($uri[1] === '') {
       UserController::login_form();
+    } elseif ($uri[1] === 'token') {
+      echo 'Token request';
     } else {
       throw new \Exception('Page ' . $uri[1] . ': Not found.');
     }
