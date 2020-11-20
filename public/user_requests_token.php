@@ -1,14 +1,13 @@
 <?php
 // user credentials are entered, base64 encoded, and sent to the authorization server for authorization token request
-get_token($argv[1], $argv[2]);
+get_token($argv[1], $argv[2], $argv[3], $argv[4]);
 
-function get_token($username, $password) {
+function get_token($username, $password, $uri, $scope) {
   // build header and body
-  $uri = 'http://ser.local/token';
   $token = base64_encode("$username:$password");
   $payload = http_build_query([
     'grant_type' => 'client_credentials',
-    'scope' => 'some_api'
+    'scope' => $scope
   ]);
   $curl_opts = [
     CURLOPT_HTTPHEADER => [
