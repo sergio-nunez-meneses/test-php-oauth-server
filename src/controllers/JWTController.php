@@ -204,14 +204,39 @@ class JWTController
       return;
     }
 
-    echo "\nYour token: $generated_token";
+    echo json_encode([
+      'token_type' => 'JWT',
+      'authorization_token' => $generated_token,
+      'redirect_uri' => 'http://ser.local/redirected'
+    ]);
+  }
 
-    if (!$token->verify($generated_token))
+  public static function curl_redirection_test()
+  {
+    $headers = apache_request_headers();
+
+    if (array_key_exists('HTTP_AUTHORIZATION', $headers))
+    {
+      $auth_header = $headers['HTTP_AUTHORIZATION'];
+    }
+    elseif (array_key_exists('Authorization', $headers))
+    {
+      $auth_header = $headers['Authorization'];
+    }
+    else
+    {
+      echo "\nUnauthorized.";
+      return;
+    }
+
+    preg_match('/Bearer\s(\S+)/', $auth_header, $matches);
+
+    if (!(new JWTController)->verify($matches[1]))
     {
       echo "\nToken's signature couldn't be verified.";
       return;
     }
 
-    echo "\n\nIt has already been validated.";
+    echo "\nYour token has been validated.";
   }
 }

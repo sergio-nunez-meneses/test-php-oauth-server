@@ -8,6 +8,8 @@ if ($uri[1] === '') {
   UserController::login_form();
 } elseif ($uri[1] === 'token') {
   JWTController::curl_response_test();
-} else {
+} elseif ($uri[1] === 'redirected') {
+  JWTController::curl_redirection_test();
+}else {
   throw new \Exception('Page ' . $uri[1] . ': Not found.');
 }

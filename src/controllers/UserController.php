@@ -82,7 +82,6 @@ class UserController
 
   public static function check_credentials($username, $password)
   {
-    $error_msg = '';
     $username = filter_var($username, FILTER_SANITIZE_STRING);
     $password = filter_var($password, FILTER_DEFAULT);
     $user = (new UserModel)->find_by_name($username);
