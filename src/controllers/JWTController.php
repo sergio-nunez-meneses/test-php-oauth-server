@@ -165,4 +165,36 @@ class JWTController
   {
     return base64_decode(str_pad(strtr($string, '-_', '+/'), strlen($string) % 4, '=', STR_PAD_RIGHT));
   }
+
+  public static function curl_response_test()
+  {
+    $headers = apache_request_headers();
+
+    if (array_key_exists('HTTP_AUTHORIZATION', $headers))
+    {
+      $auth_header = $headers['HTTP_AUTHORIZATION'];
+    }
+    elseif (array_key_exists('Authorization', $headers))
+    {
+      $auth_header = $headers['Authorization'];
+    }
+    else
+    {
+      echo "\nUnauthorized.";
+      return;
+    }
+
+    preg_match('/Basic\s(\S+)/', $auth_header, $matches);
+
+    if (!isset($matches[1]))
+    {
+      echo "\nToken not found.";
+      return;
+    }
+    else
+    {
+      echo "\nToken: " . $matches[1];
+      echo "\nReceived data: " . base64_decode($matches[1]);
+    }
+  }
 }
