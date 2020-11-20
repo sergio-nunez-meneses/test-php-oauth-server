@@ -18,7 +18,7 @@ class UserController
   public static function login($inputs)
   {
     $error = false;
-    $success_msg = $error_msg = '';
+    $error_msg = '';
 
     if (empty($inputs['username']))
     {
@@ -38,7 +38,7 @@ class UserController
 
     if ($error)
     {
-      echo $error_msg;
+      throw new \Exception($error_msg);
     }
 
     $user_model = new UserModel;
@@ -47,7 +47,7 @@ class UserController
     if (empty($user))
     {
       $error_msg .= "User doesn't exist <br>";
-      echo $error_msg;
+      throw new \Exception($error_msg);
     }
 
     $stored_password = $user['password'];
@@ -55,7 +55,7 @@ class UserController
     if (!password_verify($password, $stored_password))
     {
       $error_msg .= "Passwords don't match <br>";
-      echo $error_msg;
+      throw new \Exception($error_msg);
     }
 
     // $user_id = $user_model->get_id($inputs['license']);
@@ -65,10 +65,16 @@ class UserController
     if (empty($token))
     {
       $error_msg .= "Token couldn't be generated <br>";
+      throw new \Exception($error_msg);
     }
 
-    $success_msg .= 'Connection success! <br>';
-    echo "token: <br>$token<br>";
-    echo $success_msg;
+    echo 'Connection success!<br>';
+    echo "<br>Your token: $token<br>";
+
+    if (!(new JWTController)->verify($token))
+    {
+      $error_msg .= "Token's signature couldn't be verified <br>";
+      throw new \Exception($error_msg);
+    }
   }
 }

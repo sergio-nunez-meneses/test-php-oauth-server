@@ -10,10 +10,14 @@
   <body>
 
     <?php
-    if ($_SERVER['REQUEST_URI'] === '/') {
+    $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    $uri = explode('/', $uri);
+    // $request_method = $_SERVER['REQUEST_METHOD'];
+
+    if ($uri[1] === '') {
       UserController::login_form();
     } else {
-      throw new \Exception($_SERVER['REQUEST_URI'] . ': Not found.');
+      throw new \Exception('Page ' . $uri[1] . ': Not found.');
     }
     ?>
 

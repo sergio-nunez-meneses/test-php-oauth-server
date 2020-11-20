@@ -3,19 +3,33 @@
 class JWTModel extends DatabaseModel
 {
 
-  protected function store()
+  public function store_id($jti)
+  {
+    $sql = "INSERT INTO tokens (id, created_at, updated_at) VALUES (:jti, NOW(), NOW())";
+    $placeholders = ['jti' => $jti];
+    $res = $this->run_query($sql, $placeholders)->rowCount();
+
+    if ($res > 0)
+    {
+      return true;
+    }
+  }
+
+  public function refresh()
   {
     //
   }
 
-  protected function refresh()
+  public function revoke()
   {
     //
   }
 
-  protected function revoke()
+  public function find_by_id($jti)
   {
-    //
+    $sql = "SELECT * FROM tokens WHERE id =:jti";
+    $res = $this->run_query($sql, ['jti' => $jti])->fetch();
+    return $res;
   }
 
   public function get_keys($url)
