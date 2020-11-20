@@ -191,10 +191,27 @@ class JWTController
       echo "\nToken not found.";
       return;
     }
-    else
+
+    list($username, $password) = explode(':', base64_decode($matches[1]));
+    // $user_id = $user_model->get_id($inputs['license']);
+    $user = UserController::check_credentials($username, $password);
+    $token = new JWTController;
+    $generated_token = $token->generate($user['id']);
+
+    if (empty($generated_token))
     {
-      echo "\nToken: " . $matches[1];
-      echo "\nReceived data: " . base64_decode($matches[1]);
+      "\nToken couldn't be generated.";
+      return;
     }
+
+    echo "\nYour token: $generated_token";
+
+    if (!$token->verify($generated_token))
+    {
+      echo "\nToken's signature couldn't be verified.";
+      return;
+    }
+
+    echo "\n\nIt has already been validated.";
   }
 }

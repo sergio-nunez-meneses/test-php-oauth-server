@@ -3,7 +3,6 @@ require_once('../include/class_autoloader.php');
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $uri = explode('/', $uri);
-// $request_method = $_SERVER['REQUEST_METHOD'];
 
 if ($uri[1] === '') {
   UserController::login_form();

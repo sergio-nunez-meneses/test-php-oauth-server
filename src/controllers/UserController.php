@@ -79,4 +79,28 @@ class UserController
 
     echo "<strong>is valid</strong>!<br>";
   }
+
+  public static function check_credentials($username, $password)
+  {
+    $error_msg = '';
+    $username = filter_var($username, FILTER_SANITIZE_STRING);
+    $password = filter_var($password, FILTER_DEFAULT);
+    $user = (new UserModel)->find_by_name($username);
+
+    if (empty($user))
+    {
+      echo "\nUser doesn't exist.";
+      return;
+    }
+
+    $stored_password = $user['password'];
+
+    if (!password_verify($password, $stored_password))
+    {
+      echo "\nPasswords don't match.";
+      return;
+    }
+
+    return $user;
+  }
 }
