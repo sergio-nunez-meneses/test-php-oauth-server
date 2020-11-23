@@ -1,6 +1,6 @@
 <?php
-// to run the test, paste the folowing line in the terminal and replace variables with your user information:
-// php user_requests_token.php username, password, uri, scope
+// to run the test, copy and paste the folowing line in the terminal, and replace variables with your user information:
+// php user_requests_token.php username password uri scope (optional)
 
 require_once('../include/class_autoloader.php');
 
