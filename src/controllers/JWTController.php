@@ -3,31 +3,26 @@
 class JWTController
 {
 
-  public function generate($user_id)
+  public function generate($user_id, $algorithm = 'HS256')
   {
-    $jti = $this->generate_jti();
-    $iat = time();
-    $exp = $iat + 60 * 120 * 1 * 1; // expiration time set to an hour
-    $headers = $this->encode_token_structure([
-      'alg' => 'HS256',
-      'cty' => 'JWT'
-    ]);
-    $payload = $this->encode_token_structure([
-      'iss' => 'http://ser.local',
-      'sub' => 'http://example.local/allowed',
-      'iat' => $iat,
-      'exp' => $exp,
-      'jti' => $jti,
-      'id_user' => $user_id
-    ]);
+    $headers = $this->generate_header($algorithm);
+    $payload = $this->generate_payload($user_id, 'some_scope');
+    $token = [
+      $this->encode_token_structure($headers),
+      $this->encode_token_structure($payload)
+    ];
+    $sign_input = implode('.', $token);
 
-    // testing different sign methods
-    $signature = $this->base64_encode_url($this->sign("$headers.$payload", $this->generate_private_key()));
-    // $signature = $this->base64_encode_url(hash_hmac('SHA256', "$headers.$payload", $this->generate_private_key(), true));
-    $token = "$headers.$payload.$signature";
+    $private_key = $this->get_private_key();
+    $signature = $this->sign($sign_input, $private_key, $algorithm);
+
+    $token[] = $this->base64_encode_url($signature);
+    $token = implode('.', $token);
+
+    // store token in database : set_id, set_access_token, set_jwt_token, set_user_has_token...
     $store_jti = new JWTModel;
 
-    if (!$store_jti->store_id($jti))
+    if (!$store_jti->store_id($payload['jti']))
     {
       throw new \Exception('Failed to store token id.');
     }
@@ -57,6 +52,11 @@ class JWTController
     $decoded_header = $this->decode_token_structure($header);
     $decoded_payload = $this->decode_token_structure($payload);
 
+    if ($decoded_payload['iss'] !== 'http://ser.local')
+    {
+      throw new \Exception("Token doesn't contain expected issuer.");
+    }
+
     if ($decoded_payload['iat'] > time())
     {
       throw new \Exception('Token was issued in the future (well played Jonas Kahnwald).');
@@ -65,11 +65,6 @@ class JWTController
     if ($decoded_payload['exp'] < time())
     {
       throw new \Exception('Token expired.');
-    }
-
-    if ($decoded_payload['iss'] !== 'http://ser.local')
-    {
-      throw new \Exception("Token doesn't contain expected issuer.");
     }
 
     // $url = $decoded_payload['iss'] . '/.well-known/oauth-authorization-server';
@@ -82,26 +77,61 @@ class JWTController
       throw new \Exception("Invalid token id.");
     }
 
-    // create public key from resource
-    $private_key = file_get_contents('../keys/private.key');
-    $res = openssl_pkey_get_private($private_key);
+    $private_key = $this->get_private_key();
+    $public_key = $this->generate_public_key($private_key);
+    $signature = $this->verify_signature("$header.$payload", $this->base64_decode_url($signature), $public_key['key'], $decoded_header['alg']);
 
-    if (!$res)
-    {
-      throw new \Exception("Invalid public key.");
-    }
-
-    $public_key = openssl_pkey_get_details($res);
-
-    if (openssl_verify("$header.$payload", $this->base64_decode_url($signature), $public_key['key'], OPENSSL_ALGO_SHA256))
-    {
-      return true;
-    }
-    else
+    if (!$signature)
     {
       throw new \Exception("Token's signature couldn't be verified.");
-      return false;
     }
+
+    return true;
+  }
+
+  public function response($scope = null)
+  {
+    /* response format from https://tools.ietf.org/html/rfc6749#section-4.4.3
+
+    HTTP/1.1 200 OK
+    Content-Type: application/json;charset=UTF-8
+    Cache-Control: no-store
+    Pragma: no-cache
+
+    {
+      "access_token": "2YotnFZFEjr1zCsicMWpAA",
+      "token_type": "Bearer",
+      "expires_in": 3600,
+      "scope": "example_value"
+    }
+    */
+  }
+
+  protected function generate_header($algorithm)
+  {
+    return [
+      'typ' => 'JWT',
+      'alg' => $algorithm
+    ];
+  }
+
+  protected function generate_payload($user_id, $scope = null)
+  {
+    $jti = $this->generate_jti(); //  $this->generate_access_token()
+    $iat = time();
+    $exp = $iat + 60 * 120 * 1 * 1; // expiration time set for an hour from now
+    $payload = [
+      'jti' => $jti,
+      'id_user' => $user_id,
+      'iss' => 'http://ser.local', // get from database ?
+      'sub' => 'http://example.local/allowed', // get from database ?
+      'iat' => $iat,
+      'exp' => $exp,
+      'token_type' => 'Bearer', // get from database ?
+      'scope' => $scope
+    ];
+
+    return $payload;
   }
 
   protected function generate_jti()
@@ -120,16 +150,8 @@ class JWTController
     return uniqid('', true);
   }
 
-  protected function generate_private_key()
+  protected function get_private_key()
   {
-    // create openssl resource and save private key in a file
-    // $res = openssl_pkey_new([
-    //   'private_key_bits' => 2048,
-    //   'private_key_type' => OPENSSL_KEYTYPE_RSA
-    // ]);
-    // openssl_pkey_export($res, $private_key);
-    // file_put_contents('../keys/private.key', $private_key);
-
     $private_key = file_get_contents('../keys/private.key');
 
     if ($private_key)
@@ -138,11 +160,73 @@ class JWTController
     }
   }
 
-  protected function sign($input, $key)
+  protected function generate_private_key()
   {
-    if (openssl_sign($input, $signature, $key, OPENSSL_ALGO_SHA256))
+    // create openssl resource and save private key in a file
+    $res = openssl_pkey_new([
+      'private_key_bits' => 2048,
+      'private_key_type' => OPENSSL_KEYTYPE_RSA
+    ]);
+    openssl_pkey_export($res, $private_key);
+
+    if ($private_key)
+    {
+      file_put_contents('../keys/private.key', $private_key); // change permissions
+      return $private_key;
+    }
+  }
+
+  protected function generate_public_key($private_key)
+  {
+    // create public key from resource
+    $res = openssl_pkey_get_private($private_key);
+
+    if (!$res)
+    {
+      throw new \Exception("Invalid private key.");
+    }
+
+    $public_key = openssl_pkey_get_details($res);
+
+    if (!$public_key)
+    {
+      throw new \Exception("Public key couldn't be generated.");
+    }
+
+    return $public_key;
+  }
+
+  protected function sign($input, $key, $algorithm)
+  {
+    if ($algorithm === 'HS256')
+    {
+      $algorithm = OPENSSL_ALGO_SHA256;
+    }
+    else
+    {
+      throw new \Exception('Invalid or unsupported sign algorithm.');
+    }
+
+    if (openssl_sign($input, $signature, $key, $algorithm))
     {
       return $signature;
+    }
+  }
+
+  protected function verify_signature($signature, $input, $key, $algorithm)
+  {
+    if ($algorithm === 'HS256')
+    {
+      $algorithm = OPENSSL_ALGO_SHA256;
+    }
+    else
+    {
+      throw new \Exception('Invalid or unsupported sign algorithm.');
+    }
+
+    if (openssl_verify($signature, $input, $key, $algorithm))
+    {
+      return true;
     }
   }
 
@@ -166,6 +250,8 @@ class JWTController
     return base64_decode(str_pad(strtr($string, '-_', '+/'), strlen($string) % 4, '=', STR_PAD_RIGHT));
   }
 
+
+  // methods used for running user_requests_token.php test
   public static function curl_response_test()
   {
     $headers = apache_request_headers();
@@ -193,19 +279,18 @@ class JWTController
     }
 
     list($username, $password) = explode(':', base64_decode($matches[1]));
-    // $user_id = $user_model->get_id($inputs['license']);
     $user = UserController::check_credentials($username, $password);
     $token = new JWTController;
     $generated_token = $token->generate($user['id']);
 
     if (empty($generated_token))
     {
-      "\nToken couldn't be generated.";
+      echo "\nToken couldn't be generated.";
       return;
     }
 
     echo json_encode([
-      'token_type' => 'JWT',
+      'token_type' => 'Bearer',
       'authorization_token' => $generated_token,
       'redirect_uri' => 'http://ser.local/redirected'
     ]);
