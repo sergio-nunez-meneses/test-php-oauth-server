@@ -3,6 +3,7 @@
 // php user_requests_token.php username, password, uri, scope
 
 require_once('../include/class_autoloader.php');
+
 get_token($argv[1], $argv[2], $argv[3], $argv[4]);
 
 // user credentials are entered, base64 encoded, and sent to the authorization server for authorization token request
