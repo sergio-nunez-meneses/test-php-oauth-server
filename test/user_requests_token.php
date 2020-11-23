@@ -1,7 +1,11 @@
 <?php
-// user credentials are entered, base64 encoded, and sent to the authorization server for authorization token request
+// to run the test, paste the folowing line in the terminal and replace variables with your user information:
+// php user_requests_token.php username, password, uri, scope
+
+require_once('../include/class_autoloader.php');
 get_token($argv[1], $argv[2], $argv[3], $argv[4]);
 
+// user credentials are entered, base64 encoded, and sent to the authorization server for authorization token request
 function get_token($username, $password, $uri, $scope = null) {
   // build header and body
   $token = base64_encode("$username:$password");
@@ -43,37 +47,7 @@ function get_token($username, $password, $uri, $scope = null) {
     }
 
     curl_close($ch);
-    curl_request($response['authorization_token'], $response['redirect_uri']);
-  } catch (\Exception $e) {
-    trigger_error(
-      sprintf('Curl failed with error #%d: %s', $e->getCode(), $e->getMessage()),
-    E_USER_ERROR);
-  }
-}
-
-function curl_request($token, $url) {
-  $curl_opts = [
-    CURLOPT_URL => $url,
-    CURLOPT_HTTPHEADER => [
-      'Content-Type: application/json',
-      "Authorization: Bearer $token"
-    ],
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_VERBOSE => TRUE
-  ];
-
-  try {
-    $ch = curl_init();
-
-    if ($ch === false) {
-      throw new \Exception("Failed to initialize request.");
-    }
-
-    curl_setopt_array($ch, $curl_opts);
-    $response = curl_exec($ch);
-    curl_close($ch);
-
-    var_dump($response);
+    CurlController::request_test($response['authorization_token'], $response['redirect_uri']);
   } catch (\Exception $e) {
     trigger_error(
       sprintf('Curl failed with error #%d: %s', $e->getCode(), $e->getMessage()),
