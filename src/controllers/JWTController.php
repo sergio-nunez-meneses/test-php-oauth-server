@@ -295,16 +295,14 @@ class JWTController
     // decode must be done before spliting for getting the binary String
     $token = str_split(base64_decode($token), 256);
     $private_key = $this->get_private_key();
-    var_dump($private_key);
     $public_key = $this->generate_public_key($private_key);
-    var_dump($public_key);
     $decrypted_token = '';
 
     foreach ($token as $chunk)
     {
       $decrypted_chunk = '';
 
-      if (openssl_public_decrypt($chunk, $decrypted_chunk, $public_key, OPENSSL_PKCS1_PADDING))
+      if (!openssl_public_decrypt($chunk, $decrypted_chunk, $public_key['key'], OPENSSL_PKCS1_PADDING))
       {
         throw new \Exception(openssl_error_string());
       }
