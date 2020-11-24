@@ -26,9 +26,13 @@ class CurlController
 
       curl_setopt_array($ch, $curl_opts);
       $response = curl_exec($ch);
-      curl_close($ch);
 
-      var_dump($response);
+      if ($response === false) {
+        throw new Exception(curl_error($ch), curl_errno($ch));
+      }
+
+      curl_close($ch);
+      return $response;
     }
     catch (\Exception $e)
     {
@@ -94,6 +98,8 @@ class CurlController
       return;
     }
 
-    echo "\nYour token has been validated.\n";
+    // $token = (preg_match('/Bearer\s(\S+)/', $_SERVER['Authorization'], $matches)
+    // return (new JWTController)->generate_access_token($matches);
+    echo true;
   }
 }

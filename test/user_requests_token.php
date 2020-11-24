@@ -4,7 +4,18 @@
 
 require_once('../include/class_autoloader.php');
 
-get_token($argv[1], $argv[2], $argv[3], $argv[4]);
+$token = get_token($argv[1], $argv[2], $argv[3], $argv[4]);
+$access_token = CurlController::request_test($token['authorization_token'], $token['redirect_uri']);
+
+if (!$access_token) {
+  throw new \Exception('HTTP/1.1 401 Unauthorized');
+}
+
+if (headers_sent()) {
+  echo "\nYour token has been validated.";
+  echo "\nYou can now access our services.";
+  echo "\nRedirecting to http://services.local/service";
+}
 
 // user credentials are entered, base64 encoded, and sent to the authorization server for authorization token request
 function get_token($username, $password, $uri, $scope = null) {
@@ -17,7 +28,7 @@ function get_token($username, $password, $uri, $scope = null) {
   $curl_opts = [
     CURLOPT_HTTPHEADER => [
       'Content-Type: application/x-www-form-urlencoded',
-      "Authorization: Basic $token"
+      "Authorization: Basic $token",
     ],
     CURLOPT_POST => 1,
     CURLOPT_POSTFIELDS => $payload,
@@ -48,7 +59,7 @@ function get_token($username, $password, $uri, $scope = null) {
     }
 
     curl_close($ch);
-    CurlController::request_test($response['authorization_token'], $response['redirect_uri']);
+    return $response;
   } catch (\Exception $e) {
     trigger_error(
       sprintf('Curl failed with error #%d: %s', $e->getCode(), $e->getMessage()),

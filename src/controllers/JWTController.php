@@ -96,9 +96,16 @@ class JWTController
     return true;
   }
 
-  public function response($scope = null)
+  public function generate_access_token($token, $scope = null)
   {
     /* response format from https://tools.ietf.org/html/rfc6749#section-4.4.3
+
+    if (strpos($token[0], 'Bearer'))
+    {
+      throw new \Exception('Invalid token type.');
+    }
+
+    $token_type = explode(' ', $token[0]);
 
     HTTP/1.1 200 OK
     Content-Type: application/json;charset=UTF-8
@@ -106,10 +113,10 @@ class JWTController
     Pragma: no-cache
 
     {
-      "access_token": "2YotnFZFEjr1zCsicMWpAA",
-      "token_type": "Bearer",
+      "access_token": "$token_type[0]",
+      "token_type": "$token[1]",
       "expires_in": 3600,
-      "scope": "example_value"
+      "scope": "$scope"
     }
     */
   }
