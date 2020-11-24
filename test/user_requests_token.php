@@ -11,6 +11,7 @@ if (!$access_token) {
   throw new \Exception('HTTP/1.1 401 Unauthorized');
 }
 
+// this is to prevent the error 'Cannot modify header information - headers already sent'
 if (headers_sent()) {
   echo "\nYour token has been validated.";
   echo "\nYou can now access our services.";
