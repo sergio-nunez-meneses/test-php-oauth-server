@@ -19,7 +19,7 @@ class JWTController
     $token[] = $this->base64_encode_url($signature);
     $token = implode('.', $token);
 
-    // store token in database : set_id, set_access_token, set_jwt_token, set_user_has_token...
+    // store token in database : set_jti, set_access_token, set_jwt_token, set_user_has_token...
     $store_jti = new JWTModel;
 
     if (!$store_jti->store_id($payload['jti']))
@@ -30,25 +30,32 @@ class JWTController
     return $token;
   }
 
-  public function verify($token)
+  public function verify()
   {
-    if (!isset($token))
+    $matches = $this->get_token_from_header();
+
+    if (strpos($matches[0], 'Bearer'))
+    {
+      throw new \Exception('Invalid token type.');
+    }
+
+    if (!isset($matches[1]))
     {
       throw new \Exception('Token not found.');
     }
 
-    if (!stristr($token, '.'))
+    if (!stristr($matches[1], '.'))
     {
       throw new \Exception("Token doesn't contain expected delimiter.");
     }
 
-    if (count(explode('.', $token)) !== 3)
+    if (count(explode('.', $matches[1])) !== 3)
     {
       throw new \Exception("Token doesn't contain expected structure.");
     }
 
     // deconstruct and decode token structure
-    list($header, $payload, $signature) = explode('.', $token);
+    list($header, $payload, $signature) = explode('.', $matches[1]);
     $decoded_header = $this->decode_token_structure($header);
     $decoded_payload = $this->decode_token_structure($payload);
 
@@ -105,6 +112,29 @@ class JWTController
       "scope": "example_value"
     }
     */
+  }
+
+  protected function get_token_from_header()
+  {
+    if (array_key_exists('HTTP_AUTHORIZATION', $_SERVER))
+    {
+      $authorization_header = $_SERVER['HTTP_AUTHORIZATION'];
+    }
+    elseif (array_key_exists('Authorization', $_SERVER))
+    {
+      $authorization_header = $_SERVER['Authorization'];
+    }
+    else
+    {
+      throw new \Exception('Unauthorized.');
+    }
+
+    if (preg_match('/Bearer\s(\S+)/', $authorization_header, $matches) === false)
+    {
+      throw new \Exception('Token type not found.');
+    }
+
+    return $matches;
   }
 
   protected function generate_header($algorithm)

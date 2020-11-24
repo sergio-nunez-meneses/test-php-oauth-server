@@ -80,6 +80,7 @@ class UserController
     echo "<strong>is valid</strong>!<br>";
   }
 
+  // method used for running user_requests_token.php test
   public static function check_credentials($username, $password)
   {
     $username = filter_var($username, FILTER_SANITIZE_STRING);

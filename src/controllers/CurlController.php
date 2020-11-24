@@ -40,15 +40,13 @@ class CurlController
 
   public static function response_test()
   {
-    $headers = apache_request_headers();
-
-    if (array_key_exists('HTTP_AUTHORIZATION', $headers))
+    if (array_key_exists('HTTP_AUTHORIZATION', $_SERVER))
     {
-      $auth_header = $headers['HTTP_AUTHORIZATION'];
+      $authorization_header = $_SERVER['HTTP_AUTHORIZATION'];
     }
-    elseif (array_key_exists('Authorization', $headers))
+    elseif (array_key_exists('Authorization', $_SERVER))
     {
-      $auth_header = $headers['Authorization'];
+      $authorization_header = $_SERVER['Authorization'];
     }
     else
     {
@@ -56,11 +54,17 @@ class CurlController
       return;
     }
 
-    preg_match('/Basic\s(\S+)/', $auth_header, $matches);
+    preg_match('/Basic\s(\S+)/', $authorization_header, $matches);
+
+    if (strpos($matches[0], 'Basic'))
+    {
+      echo "\nInvalid token type.";
+      return;
+    }
 
     if (!isset($matches[1]))
     {
-      echo "\nToken not found.";
+      echo "\nClient credentials not found.";
       return;
     }
 
@@ -84,30 +88,12 @@ class CurlController
 
   public static function redirection_test()
   {
-    $headers = apache_request_headers();
-
-    if (array_key_exists('HTTP_AUTHORIZATION', $headers))
-    {
-      $auth_header = $headers['HTTP_AUTHORIZATION'];
-    }
-    elseif (array_key_exists('Authorization', $headers))
-    {
-      $auth_header = $headers['Authorization'];
-    }
-    else
-    {
-      echo "\nUnauthorized.";
-      return;
-    }
-
-    preg_match('/Bearer\s(\S+)/', $auth_header, $matches);
-
-    if (!(new JWTController)->verify($matches[1]))
+    if (!(new JWTController)->verify())
     {
       echo "\nToken's signature couldn't be verified.";
       return;
     }
 
-    echo "\nYour token has been validated.";
+    echo "\nYour token has been validated.\n";
   }
 }
