@@ -13,8 +13,7 @@ if (empty($access_token)) {
 
 // this is to prevent the error 'Cannot modify header information - headers already sent'
 if (headers_sent()) {
-  var_dump($access_token);
-  
+  print_r($access_token);
   echo "\nYour token has been validated.";
   echo "\nYou can now access our services.";
   echo "\nRedirecting to http://services.local/service";

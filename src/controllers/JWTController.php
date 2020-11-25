@@ -3,9 +3,14 @@ require_once('../tools/constants.php');
 
 class JWTController
 {
+  // jwt generation, encryption, decryption and validation for performing oauth 2.0 client credentials grant type (see https://tools.ietf.org/html/rfc6749#section-4.4)
 
   public function generate($user_id, $algorithm = 'HS256')
   {
+    // jwt creation https://tools.ietf.org/html/rfc7519#section-7.1 , plus private key encryption
+
+    $user_id = filter_var($user_id, FILTER_SANITIZE_STRING);
+
     $headers = $this->generate_header($algorithm);
     $payload = $this->generate_payload($user_id, 'some_scope');
     $token = [
@@ -39,6 +44,8 @@ class JWTController
 
   public function verify()
   {
+    // jwt validation from https://tools.ietf.org/html/rfc7519#section-7.2 , plus public key decryption
+
     $encrypted_token = $this->get_token_from_header();
 
     if (strpos($encrypted_token[0], 'Bearer'))
@@ -92,13 +99,16 @@ class JWTController
     // $keys = (new TokenModel)->get_keys($url);
 
     $stored_token = new JWTModel();
+    $jti = filter_var($decoded_payload['jti'], FILTER_SANITIZE_STRING);
 
-    if (!$stored_token->find_by_id($decoded_payload['jti']))
+    if (!$stored_token->find_by_id($jti))
     {
       throw new \Exception('Invalid token id.');
     }
 
-    if (!$stored_token->find_by_token($encrypted_token[1]))
+    $jwt = filter_var($encrypted_token[1], FILTER_SANITIZE_STRING);
+
+    if (!$stored_token->find_by_token($jwt))
     {
       throw new \Exception('Invalid token.');
     }
@@ -117,7 +127,8 @@ class JWTController
 
   public function generate_access_token($scope = null)
   {
-    // response format from https://tools.ietf.org/html/rfc6749#section-4.4.3
+    // response format from https://tools.ietf.org/html/rfc6749#section-5.1
+    
     $token = $this->get_token_from_header();
 
     if (strpos($token[0], 'Bearer'))
@@ -161,6 +172,13 @@ class JWTController
 
   protected function generate_header($algorithm)
   {
+    // jose header format from https://tools.ietf.org/html/rfc7519#section-5
+
+    if ($algorithm !== 'HS256')
+    {
+      throw new \Exception('Invalid or unsupported algorithm.');
+    }
+
     return [
       'typ' => 'JWT',
       'alg' => $algorithm
@@ -169,6 +187,8 @@ class JWTController
 
   protected function generate_payload($user_id, $scope = null)
   {
+    // jwt claims format from https://tools.ietf.org/html/rfc7519#section-4
+
     $jti = $this->generate_jti(); //  $this->generate_access_token()
     $iat = time();
     $exp = $iat + 60 * 120 * 1 * 1; // expiration time set for an hour from now
@@ -301,10 +321,10 @@ class JWTController
       $encrypted_token .= $encrypted_chunk;
     }
 
-    return base64_encode($encrypted_token); // encoding the whole binary String as MIME base 64
+    // encoding the whole binary String as MIME base 64
+    return base64_encode($encrypted_token);
   }
 
-  // method not working
   public function decrypt($token)
   {
     // decode must be done before spliting for getting the binary String

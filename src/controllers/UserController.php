@@ -12,7 +12,7 @@ class UserController
         UserController::login($_POST);
       }
     }
-    
+
     UserView::display();
   }
 
@@ -72,13 +72,14 @@ class UserController
     echo 'Connection success!<br>';
     echo "<br>Your token: <em>$token</em><br>";
 
-    // if (!(new JWTController)->verify())
-    // {
-    //   $error_msg .= "Token's signature couldn't be verified <br>";
-    //   throw new \Exception($error_msg);
-    // }
-    //
-    // echo "<strong>is valid</strong>!<br>";
+    // since token is not get from header, this throws an error
+    if (!(new JWTController)->verify())
+    {
+      $error_msg .= "Token's signature couldn't be verified <br>";
+      throw new \Exception($error_msg);
+    }
+
+    echo "<strong>is valid</strong>!<br>";
   }
 
   // method used for running user_requests_token.php test
