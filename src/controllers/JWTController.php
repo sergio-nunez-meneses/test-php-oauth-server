@@ -7,7 +7,7 @@ class JWTController
 
   public function generate($user_id, $algorithm = 'HS256')
   {
-    // jwt creation https://tools.ietf.org/html/rfc7519#section-7.1 , plus private key encryption
+    // jwt creation from https://tools.ietf.org/html/rfc7519#section-7.1 , plus private key encryption
 
     $user_id = filter_var($user_id, FILTER_SANITIZE_STRING);
 
@@ -34,7 +34,7 @@ class JWTController
     // store token in database
     $new_token = new JWTModel();
 
-    if (!$new_token->store($payload['jti'], $encrypted_token, $user_id))
+    if (!$new_token->create($payload['jti'], $encrypted_token, $user_id))
     {
       throw new \Exception('Failed to store token.');
     }
@@ -101,7 +101,7 @@ class JWTController
     $stored_token = new JWTModel();
     $jti = filter_var($decoded_payload['jti'], FILTER_SANITIZE_STRING);
 
-    if (!$stored_token->find_by_id($jti))
+    if (!$stored_token->find_by_jti($jti))
     {
       throw new \Exception('Invalid token id.');
     }
@@ -128,23 +128,54 @@ class JWTController
   public function generate_access_token($scope = null)
   {
     // response format from https://tools.ietf.org/html/rfc6749#section-5.1
-    
-    $token = $this->get_token_from_header();
 
-    if (strpos($token[0], 'Bearer'))
+    $encrypted_token = $this->get_token_from_header();
+
+    if (strpos($encrypted_token[0], 'Bearer'))
     {
       throw new \Exception('Invalid token type.');
     }
 
-    $token_type = explode(' ', $token[0]);
+    $token_type = explode(' ', $encrypted_token[0]);
     $access_token = [
-      'access_token' => $token[1],
+      'access_token' => $encrypted_token[1],
       'token_type' => $token_type[0],
       'expires_in' => 3600,
       'scope' => $scope
     ];
 
     return json_encode($access_token);
+  }
+
+  public function revoke()
+  {
+    $encrypted_token = $this->get_token_from_header();
+
+    if (strpos($encrypted_token[0], 'Bearer'))
+    {
+      throw new \Exception('Invalid token type.');
+    }
+
+    if (!isset($encrypted_token[1]))
+    {
+      throw new \Exception('Token not found.');
+    }
+
+    $jwt = filter_var($encrypted_token[1], FILTER_SANITIZE_STRING);
+    $token = new JWTModel();
+    $stored_token = $token->find_by_token($jwt);
+
+    if (!$stored_token)
+    {
+      throw new \Exception('Invalid token.');
+    }
+
+    if (!$token->delete($stored_token['jti']))
+    {
+      throw new \Exception('Failed to revoke token.');
+    }
+
+    return true;
   }
 
   protected function get_token_from_header()
@@ -208,17 +239,6 @@ class JWTController
 
   protected function generate_jti()
   {
-    // method not working
-    // if (!function_exists('uuid_create'))
-    // {
-    //   return false;
-    // }
-    //
-    // uuid_create($context);
-    // uuid_make($context, UUID_MAKE_V4);
-    // uuid_export($context, UUID_FMT_STR, $uuid);
-    // return trim($uuid);
-
     return uniqid('', true);
   }
 
@@ -301,7 +321,7 @@ class JWTController
     return openssl_verify($signature, $input, $key, $algorithm);
   }
 
-  public function encrypt($input)
+  protected function encrypt($input)
   {
     // this for 2048 bit key for example, leaving some room
     $input = str_split($input, 200);

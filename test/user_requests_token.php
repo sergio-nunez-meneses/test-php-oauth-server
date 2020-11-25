@@ -4,6 +4,7 @@
 
 require_once('../include/class_autoloader.php');
 
+// login and request token
 $token = get_token($argv[1], $argv[2], $argv[3], $argv[4]);
 $access_token = CurlController::request_test($token['authorization_token'], $token['redirect_uri']);
 
@@ -14,9 +15,17 @@ if (empty($access_token)) {
 // this is to prevent the error 'Cannot modify header information - headers already sent'
 if (headers_sent()) {
   print_r($access_token);
-  echo "\nYour token has been validated.";
-  echo "\nYou can now access our services.";
+  echo "\n\nYour token has been validated, you can now access our services.";
   echo "\nRedirecting to http://services.local/service";
+}
+
+// logout and revoke token
+$access_token = json_decode($access_token, true);
+$logout = CurlController::request_test($access_token['access_token'], 'http://ser.local/logout');
+
+if ($logout)
+{
+  echo "\n\nUser logged out.";
 }
 
 // user credentials are entered, base64 encoded, and sent to the authorization server for authorization token request

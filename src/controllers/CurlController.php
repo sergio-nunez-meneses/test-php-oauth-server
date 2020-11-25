@@ -101,6 +101,5 @@ class CurlController
     }
 
     echo (new JWTController)->generate_access_token();
-    // echo true;
   }
 }

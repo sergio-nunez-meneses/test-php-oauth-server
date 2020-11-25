@@ -10,6 +10,8 @@ if ($uri[1] === '') {
   CurlController::response_test();
 } elseif ($uri[1] === 'redirected') {
   CurlController::redirection_test();
-} else {
+} elseif ($uri[1] === 'logout') {
+  UserController::logout();
+}else {
   throw new \Exception('Page ' . $uri[1] . ': Not found.');
 }

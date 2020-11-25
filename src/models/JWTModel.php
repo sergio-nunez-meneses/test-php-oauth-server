@@ -3,7 +3,7 @@
 class JWTModel extends DatabaseModel
 {
 
-  public function store($jti, $jwt, $user_id)
+  public function create($jti, $jwt, $user_id)
   {
     $sql = "INSERT INTO tokens (jti, jwt, created_at, updated_at, users_id) VALUES (:jti, :jwt, NOW(), NOW(), :user_id)";
     $placeholders = [
@@ -19,12 +19,23 @@ class JWTModel extends DatabaseModel
     }
   }
 
-  public function refresh()
+  // method not tested yet
+  public function update($jti, $new_jti)
   {
-    //
+    $sql = "UPDATE tokens SET jti = :new_jti, updated_at = NOW() WHERE jti = :jti";
+    $placeholders = [
+      'jti' => $jti,
+      'jti' => $new_jti
+    ];
+    $res = $this->run_query($sql, $placeholders)->rowCount();
+
+    if ($res > 0)
+    {
+      return true;
+    }
   }
 
-  public function revoke($jti)
+  public function delete($jti)
   {
     $sql = "DELETE FROM tokens WHERE jti = :jti";
     $res = $this->run_query($sql, ['jti' => $jti])->rowCount();
@@ -35,8 +46,7 @@ class JWTModel extends DatabaseModel
     }
   }
 
-  // column 'id' will change to 'jti'
-  public function find_by_id($jti)
+  public function find_by_jti($jti)
   {
     $sql = "SELECT * FROM tokens WHERE jti =:jti";
     $res = $this->run_query($sql, ['jti' => $jti])->fetch();
@@ -48,21 +58,5 @@ class JWTModel extends DatabaseModel
     $sql = "SELECT * FROM tokens WHERE jwt =:jwt";
     $res = $this->run_query($sql, ['jwt' => $jwt])->fetch();
     return $res;
-  }
-
-  // this is just a model
-  public function get_keys($url)
-  {
-    return json_decode(file_get_contents(json_decode(file_get_contents($url, false, stream_context_create([
-      'http'=>[
-        'method'=>'GET',
-        // 'header'=>''
-      ]
-    ])), 1)['jwks_uri'], false, stream_context_create([
-      'http'=>[
-        'method'=>'GET',
-        // 'header'=>''
-      ]
-    ])), 1)['keys'];
   }
 }
