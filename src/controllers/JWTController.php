@@ -18,30 +18,38 @@ class JWTController
 
     $token[] = $this->base64_encode_url($signature);
     $token = implode('.', $token);
+    $encrypted_token = $this->encrypt($token);
 
     // store token in database : set_jti, set_access_token, set_jwt_token, set_user_has_token...
-    $store_jti = new JWTModel();
+    $new_token = new JWTModel();
 
-    if (!$store_jti->store_id($payload['jti']))
+    if (!$new_token->store($payload['jti'], $encrypted_token, $user_id))
     {
-      throw new \Exception('Failed to store token id.');
+      throw new \Exception('Failed to store token.');
     }
 
-    return $token;
+    return $encrypted_token;
   }
 
   public function verify()
   {
-    $token = $this->get_token_from_header();
+    $encrypted_token = $this->get_token_from_header();
 
-    if (strpos($token[0], 'Bearer'))
+    if (strpos($encrypted_token[0], 'Bearer'))
     {
       throw new \Exception('Invalid token type.');
     }
 
-    if (!isset($token[1]))
+    if (!isset($encrypted_token[1]))
     {
       throw new \Exception('Token not found.');
+    }
+
+    $token = (new JWTController)->decrypt($encrypted_token);
+
+    if (empty($token))
+    {
+      throw new \Exception("Token couldn't be decrypted.");
     }
 
     if (!stristr($token[1], '.'))

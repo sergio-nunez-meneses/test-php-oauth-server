@@ -11,6 +11,7 @@ $res = openssl_pkey_new([
 openssl_pkey_export($res, $private_key);
 $public_key = openssl_pkey_get_details($res);
 
+// encrypt and decrypt
 if (!openssl_private_encrypt($token, $encrypted, $private_key, OPENSSL_PKCS1_PADDING)) {
   throw new \Exception(openssl_error_string());
 }
