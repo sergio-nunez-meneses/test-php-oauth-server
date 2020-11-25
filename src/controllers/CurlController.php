@@ -27,7 +27,8 @@ class CurlController
       curl_setopt_array($ch, $curl_opts);
       $response = curl_exec($ch);
 
-      if ($response === false) {
+      if ($response === false)
+      {
         throw new Exception(curl_error($ch), curl_errno($ch));
       }
 

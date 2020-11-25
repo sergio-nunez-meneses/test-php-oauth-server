@@ -1,4 +1,5 @@
 <?php
+require_once('../tools/constants.php');
 
 class JWTController
 {
@@ -20,7 +21,12 @@ class JWTController
     $token = implode('.', $token);
     $encrypted_token = $this->encrypt($token);
 
-    // store token in database : set_jti, set_access_token, set_jwt_token, set_user_has_token...
+    if (empty($encrypted_token))
+    {
+      throw new \Exception("Token couldn't be encrypted.");
+    }
+
+    // store token in database
     $new_token = new JWTModel();
 
     if (!$new_token->store($payload['jti'], $encrypted_token, $user_id))
@@ -67,7 +73,7 @@ class JWTController
     $decoded_header = $this->decode_token_structure($header);
     $decoded_payload = $this->decode_token_structure($payload);
 
-    if ($decoded_payload['iss'] !== 'http://ser.local')
+    if ($decoded_payload['iss'] !== ISSUER)
     {
       throw new \Exception("Token doesn't contain expected issuer.");
     }
@@ -89,7 +95,12 @@ class JWTController
 
     if (!$stored_token->find_by_id($decoded_payload['jti']))
     {
-      throw new \Exception("Invalid token id.");
+      throw new \Exception('Invalid token id.');
+    }
+
+    if (!$stored_token->find_by_token($token[1]))
+    {
+      throw new \Exception('Invalid token.');
     }
 
     $private_key = $this->get_private_key();
@@ -121,10 +132,10 @@ class JWTController
     Pragma: no-cache
 
     {
-      "access_token": "$token_type[0]",
-      "token_type": "$token[1]",
+      "access_token": $token_type[0],
+      "token_type": $token[1],
       "expires_in": 3600,
-      "scope": "$scope"
+      "scope": $scope
     }
     */
   }
@@ -168,8 +179,8 @@ class JWTController
     $payload = [
       'jti' => $jti,
       'id_user' => $user_id,
-      'iss' => 'http://ser.local', // get from database ?
-      'sub' => 'http://example.local/allowed', // get from database ?
+      'iss' => ISSUER, // get from database ?
+      'sub' => 'http://service.local/allowed-service', // get from database ?
       'iat' => $iat,
       'exp' => $exp,
       'token_type' => 'Bearer', // get from database ?
