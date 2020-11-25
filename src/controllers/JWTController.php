@@ -51,25 +51,25 @@ class JWTController
       throw new \Exception('Token not found.');
     }
 
-    $token = (new JWTController)->decrypt($encrypted_token);
+    $token = (new JWTController)->decrypt($encrypted_token[1]);
 
     if (empty($token))
     {
       throw new \Exception("Token couldn't be decrypted.");
     }
 
-    if (!stristr($token[1], '.'))
+    if (!stristr($token, '.'))
     {
       throw new \Exception("Token doesn't contain expected delimiter.");
     }
 
-    if (count(explode('.', $token[1])) !== 3)
+    if (count(explode('.', $token)) !== 3)
     {
       throw new \Exception("Token doesn't contain expected structure.");
     }
 
     // deconstruct and decode token structure
-    list($header, $payload, $signature) = explode('.', $token[1]);
+    list($header, $payload, $signature) = explode('.', $token);
     $decoded_header = $this->decode_token_structure($header);
     $decoded_payload = $this->decode_token_structure($payload);
 
@@ -98,7 +98,7 @@ class JWTController
       throw new \Exception('Invalid token id.');
     }
 
-    if (!$stored_token->find_by_token($token[1]))
+    if (!$stored_token->find_by_token($encrypted_token[1]))
     {
       throw new \Exception('Invalid token.');
     }
@@ -115,9 +115,10 @@ class JWTController
     return true;
   }
 
-  public function generate_access_token($token, $scope = null)
+  public function generate_access_token($scope = null)
   {
-    /* response format from https://tools.ietf.org/html/rfc6749#section-4.4.3
+    // response format from https://tools.ietf.org/html/rfc6749#section-4.4.3
+    $token = $this->get_token_from_header();
 
     if (strpos($token[0], 'Bearer'))
     {
@@ -125,19 +126,14 @@ class JWTController
     }
 
     $token_type = explode(' ', $token[0]);
+    $access_token = [
+      'access_token' => $token[1],
+      'token_type' => $token_type[0],
+      'expires_in' => 3600,
+      'scope' => $scope
+    ];
 
-    HTTP/1.1 200 OK
-    Content-Type: application/json;charset=UTF-8
-    Cache-Control: no-store
-    Pragma: no-cache
-
-    {
-      "access_token": $token_type[0],
-      "token_type": $token[1],
-      "expires_in": 3600,
-      "scope": $scope
-    }
-    */
+    return json_encode($access_token);
   }
 
   protected function get_token_from_header()

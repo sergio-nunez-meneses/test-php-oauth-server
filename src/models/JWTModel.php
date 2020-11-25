@@ -38,7 +38,7 @@ class JWTModel extends DatabaseModel
   // column 'id' will change to 'jti'
   public function find_by_id($jti)
   {
-    $sql = "SELECT * FROM tokens WHERE id =:jti";
+    $sql = "SELECT * FROM tokens WHERE jti =:jti";
     $res = $this->run_query($sql, ['jti' => $jti])->fetch();
     return $res;
   }

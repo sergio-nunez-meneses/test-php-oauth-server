@@ -7,12 +7,14 @@ require_once('../include/class_autoloader.php');
 $token = get_token($argv[1], $argv[2], $argv[3], $argv[4]);
 $access_token = CurlController::request_test($token['authorization_token'], $token['redirect_uri']);
 
-if (!$access_token) {
+if (empty($access_token)) {
   throw new \Exception('HTTP/1.1 401 Unauthorized');
 }
 
 // this is to prevent the error 'Cannot modify header information - headers already sent'
 if (headers_sent()) {
+  var_dump($access_token);
+  
   echo "\nYour token has been validated.";
   echo "\nYou can now access our services.";
   echo "\nRedirecting to http://services.local/service";
@@ -55,7 +57,7 @@ function get_token($username, $password, $uri, $scope = null) {
 
     $response = json_decode($response, true);
 
-    if (!isset($response['authorization_token']) || !isset($response['token_type'])) {
+    if (!isset($response['authorization_token'])) {
       throw new Exception('Failed, exiting.');
     }
 

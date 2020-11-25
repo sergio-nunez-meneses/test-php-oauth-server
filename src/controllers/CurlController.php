@@ -84,23 +84,23 @@ class CurlController
       return;
     }
 
-    echo json_encode([
-      'token_type' => 'Bearer',
+    $authorization_token = [
       'authorization_token' => $generated_token,
       'redirect_uri' => 'http://ser.local/redirected'
-    ]);
+    ];
+
+    echo json_encode($authorization_token);
   }
 
   public static function redirection_test()
   {
     if (!(new JWTController)->verify())
     {
-      echo "\nToken's signature couldn't be verified.";
+      echo "\nToken couldn't be verified.";
       return;
     }
 
-    // $token = (preg_match('/Bearer\s(\S+)/', $_SERVER['Authorization'], $matches)
-    // return (new JWTController)->generate_access_token($matches);
-    echo true;
+    echo (new JWTController)->generate_access_token();
+    // echo true;
   }
 }
