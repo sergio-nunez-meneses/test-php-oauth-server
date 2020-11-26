@@ -147,6 +147,11 @@ class JWTController
     return json_encode($access_token);
   }
 
+  public function refresh()
+  {
+    // code...
+  }
+
   public function revoke()
   {
     $encrypted_token = $this->get_token_from_header();

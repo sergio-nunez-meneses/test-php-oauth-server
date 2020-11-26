@@ -86,7 +86,7 @@ class CurlController
 
     $authorization_token = [
       'authorization_token' => $generated_token,
-      'redirect_uri' => 'http://ser.local/redirected'
+      'redirect_uri' => 'http://ser.local/at_request'
     ];
 
     echo json_encode($authorization_token);

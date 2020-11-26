@@ -21,7 +21,7 @@ if (headers_sent()) {
 
 // logout and revoke token
 $access_token = json_decode($access_token, true);
-$logout = CurlController::request_test($access_token['access_token'], 'http://ser.local/logout');
+$logout = CurlController::request_test($access_token['access_token'], 'http://ser.local/rt_request');
 
 if ($logout)
 {
