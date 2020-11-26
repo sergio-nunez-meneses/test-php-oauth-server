@@ -14,9 +14,10 @@ if (empty($access_token)) {
 
 // this is to prevent the error 'Cannot modify header information - headers already sent'
 if (headers_sent()) {
+  echo "\n\n";
   print_r($access_token);
   echo "\n\nYour token has been validated, you can now access our services.";
-  echo "\nRedirecting to http://services.local/service";
+  echo "\nRedirecting to http://services.local/service\n\n";
 }
 
 // logout and revoke token
@@ -25,7 +26,7 @@ $logout = CurlController::request_test($access_token['access_token'], 'http://se
 
 if ($logout)
 {
-  echo "\n\nUser logged out.";
+  echo "\n\nUser logged out.\n\n";
 }
 
 // user credentials are entered, base64 encoded, and sent to the authorization server for authorization token request
