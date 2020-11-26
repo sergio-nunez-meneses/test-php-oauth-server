@@ -7,11 +7,11 @@ $uri = explode('/', $uri);
 if ($uri[1] === '') {
   UserController::login_form();
 } elseif ($uri[1] === 'token') {
-  CurlController::response_test();
+  CurlController::token_request();
 } elseif ($uri[1] === 'redirected') {
-  CurlController::redirection_test();
+  CurlController::access_token_request();
 } elseif ($uri[1] === 'logout') {
-  UserController::logout();
-}else {
+  CurlController::revoke_token_request();
+} else {
   throw new \Exception('Page ' . $uri[1] . ': Not found.');
 }

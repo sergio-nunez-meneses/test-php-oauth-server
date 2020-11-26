@@ -21,7 +21,7 @@ class CurlController
 
       if ($ch === false)
       {
-        throw new \Exception("Failed to initialize request.");
+        throw new \Exception('Failed to initialize request.');
       }
 
       curl_setopt_array($ch, $curl_opts);
@@ -43,7 +43,7 @@ class CurlController
     }
   }
 
-  public static function response_test()
+  public static function token_request()
   {
     if (array_key_exists('HTTP_AUTHORIZATION', $_SERVER))
     {
@@ -92,7 +92,7 @@ class CurlController
     echo json_encode($authorization_token);
   }
 
-  public static function redirection_test()
+  public static function access_token_request()
   {
     if (!(new JWTController)->verify())
     {
@@ -101,5 +101,16 @@ class CurlController
     }
 
     echo (new JWTController)->generate_access_token();
+  }
+
+  public static function revoke_token_request()
+  {
+    if (!(new JWTController)->verify())
+    {
+      echo "\nToken couldn't be verified.";
+      return;
+    }
+
+    echo UserController::logout();
   }
 }
