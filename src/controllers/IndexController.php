@@ -5,7 +5,7 @@ class IndexController
 
   public static function route_requests($uri, $request_method)
   {
-    $valid_uris = ['', 't_request', 'at_request', 'rt_request'];
+    $valid_uris = ['', 't_request', 'at_request', 'refresh_token', 'rt_request'];
 
     if (in_array($uri, $valid_uris))
     {
@@ -19,11 +19,15 @@ class IndexController
       }
       else
       {
-        if ($request_method === 'GET' && (new JWTController)->verify())
+        if ((new JWTController)->verify() && $request_method === 'GET')
         {
           if ($uri === 'at_request')
           {
             CurlController::access_token_request();
+          }
+          elseif ($uri === 'refresh_token')
+          {
+            CurlController::refresh_token_request();
           }
           elseif ($uri === 'rt_request')
           {

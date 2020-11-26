@@ -149,7 +149,40 @@ class JWTController
 
   public function refresh()
   {
-    // code...
+    $encrypted_token = $this->get_token_from_header();
+
+    if (strpos($encrypted_token[0], 'Bearer'))
+    {
+      throw new \Exception('Invalid token type.');
+    }
+
+    if (!isset($encrypted_token[1]))
+    {
+      throw new \Exception('Token not found.');
+    }
+
+    $jwt = filter_var($encrypted_token[1], FILTER_SANITIZE_STRING);
+    $token = new JWTModel();
+    $stored_token = $token->find_by_token($jwt);
+
+    if (!$stored_token)
+    {
+      throw new \Exception('Invalid token.');
+    }
+
+    $new_token = $this->generate($stored_token['users_id']);
+
+    if (empty($new_token))
+    {
+      throw new \Exception("Token couldn't be generated.");
+    }
+
+    if (!$token->delete($stored_token['jti']))
+    {
+      throw new \Exception('Failed to revoke token.');
+    }
+
+    return $new_token;
   }
 
   public function revoke()

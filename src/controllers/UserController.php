@@ -108,9 +108,6 @@ class UserController
 
   public static function logout()
   {
-    if ($_SERVER['REQUEST_METHOD'] === 'GET')
-    {
-      return (new JWTController)->revoke();
-    }
+    return (new JWTController)->revoke();
   }
 }

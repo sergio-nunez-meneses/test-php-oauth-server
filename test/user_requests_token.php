@@ -9,20 +9,28 @@ $token = get_token($argv[1], $argv[2], $argv[3], $argv[4]);
 $access_token = CurlController::request_test($token['authorization_token'], $token['redirect_uri']);
 
 if (empty($access_token)) {
-  throw new \Exception('HTTP/1.1 401 Unauthorized');
+  echo "\n\nUnauthorized.\n";
 }
 
-// this is to prevent the error 'Cannot modify header information - headers already sent'
-if (headers_sent()) {
-  echo "\n\n";
-  print_r($access_token);
-  echo "\n\nYour token has been validated, you can now access our services.";
-  echo "\nRedirecting to http://services.local/service\n\n";
+$access_token = json_decode($access_token, true)['access_token'];
+
+echo "\n\n" . $access_token;
+echo "\n\nYour token has been validated, you can now access our services.";
+echo "\nRedirecting to http://services.local/service\n\n";
+
+// request refresh token
+$refresh_token = CurlController::request_test($access_token, 'http://ser.local/refresh_token');
+
+if (empty($refresh_token))
+{
+  echo "\n\nUnauthorized.\n";
 }
 
-// logout and revoke token
-$access_token = json_decode($access_token, true);
-$logout = CurlController::request_test($access_token['access_token'], 'http://ser.local/rt_request');
+echo "\n\n$refresh_token";
+echo "\n\nYour token has been refreshed, you still have access to our services.\n\n";
+
+// logout and revoke token (// since token has been replaced, this doesn't work)
+$logout = CurlController::request_test($access_token, 'http://ser.local/rt_request');
 
 if ($logout)
 {

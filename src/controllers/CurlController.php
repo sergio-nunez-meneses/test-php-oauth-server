@@ -94,23 +94,16 @@ class CurlController
 
   public static function access_token_request()
   {
-    // if (!(new JWTController)->verify())
-    // {
-    //   echo "\nToken couldn't be verified.";
-    //   return;
-    // }
-
     echo (new JWTController)->generate_access_token();
+  }
+
+  public static function refresh_token_request()
+  {
+    echo (new JWTController)->refresh();
   }
 
   public static function revoke_token_request()
   {
-    // if (!(new JWTController)->verify())
-    // {
-    //   echo "\nToken couldn't be verified.";
-    //   return;
-    // }
-
-    echo UserController::logout();
+    echo (new JWTController)->revoke();
   }
 }
