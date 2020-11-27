@@ -45,37 +45,39 @@ class CurlController
 
   public static function token_request()
   {
-    if (array_key_exists('HTTP_AUTHORIZATION', $_SERVER))
-    {
-      $authorization_header = $_SERVER['HTTP_AUTHORIZATION'];
-    }
-    elseif (array_key_exists('Authorization', $_SERVER))
-    {
-      $authorization_header = $_SERVER['Authorization'];
-    }
-    else
-    {
-      echo "\nUnauthorized.";
-      return;
-    }
+    // if (array_key_exists('HTTP_AUTHORIZATION', $_SERVER))
+    // {
+    //   $authorization_header = $_SERVER['HTTP_AUTHORIZATION'];
+    // }
+    // elseif (array_key_exists('Authorization', $_SERVER))
+    // {
+    //   $authorization_header = $_SERVER['Authorization'];
+    // }
+    // else
+    // {
+    //   echo "\nUnauthorized.";
+    //   return;
+    // }
+    //
+    // preg_match('/Basic\s(\S+)/', $authorization_header, $matches);
+    //
+    // if (strpos($matches[0], 'Basic'))
+    // {
+    //   echo "\nInvalid token type.";
+    //   return;
+    // }
+    //
+    // if (!isset($matches[1]))
+    // {
+    //   echo "\nClient credentials not found.";
+    //   return;
+    // }
 
-    preg_match('/Basic\s(\S+)/', $authorization_header, $matches);
+    $client_credentials = (new JWTController)->get_token_from_header();
 
-    if (strpos($matches[0], 'Basic'))
-    {
-      echo "\nInvalid token type.";
-      return;
-    }
-
-    if (!isset($matches[1]))
-    {
-      echo "\nClient credentials not found.";
-      return;
-    }
-
-    list($username, $password) = explode(':', base64_decode($matches[1]));
+    list($username, $password) = explode(':', base64_decode($client_credentials[1]));
     $user = UserController::check_credentials($username, $password);
-    $token = new JWTController;
+    $token = new JWTController();
     $generated_token = $token->generate($user['id']);
 
     if (empty($generated_token))

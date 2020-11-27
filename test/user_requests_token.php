@@ -1,18 +1,24 @@
 <?php
-// to run the test, copy and paste the folowing line in the terminal, and replace variables with your user information:
-// php user_requests_token.php username password uri scope (optional)
+/*
+to run the test, copy and paste the folowing line in the terminal, and replace variables with your user information:
+php user_requests_token.php username password uri scope (optional)
+*/
 
 require_once('../include/class_autoloader.php');
 
 // login and request token
 $token = get_token($argv[1], $argv[2], $argv[3], $argv[4]);
+
+if (empty($token)) {
+  echo "\n\nCouldn't generate token.\n";
+}
+
 $access_token = CurlController::request_test($token['authorization_token'], $token['redirect_uri']);
+$access_token = json_decode($access_token, true)['access_token'];
 
 if (empty($access_token)) {
   echo "\n\nUnauthorized.\n";
 }
-
-$access_token = json_decode($access_token, true)['access_token'];
 
 echo "\n\n" . $access_token;
 echo "\n\nYour token has been validated, you can now access our services.";
@@ -29,7 +35,7 @@ if (empty($refresh_token))
 echo "\n\n$refresh_token";
 echo "\n\nYour token has been refreshed, you still have access to our services.\n\n";
 
-// logout and revoke token (// since token has been replaced, this doesn't work)
+// logout and revoke token (since token has been replaced, this doesn't work)
 $logout = CurlController::request_test($access_token, 'http://ser.local/rt_request');
 
 if ($logout)

@@ -48,15 +48,15 @@ class JWTController
 
     $encrypted_token = $this->get_token_from_header();
 
-    if (strpos($encrypted_token[0], 'Bearer'))
-    {
-      throw new \Exception('Invalid token type.');
-    }
-
-    if (!isset($encrypted_token[1]))
-    {
-      throw new \Exception('Token not found.');
-    }
+    // if (strpos($encrypted_token[0], 'Bearer'))
+    // {
+    //   throw new \Exception('Invalid token type.');
+    // }
+    //
+    // if (!isset($encrypted_token[1]))
+    // {
+    //   throw new \Exception('Token not found.');
+    // }
 
     $token = (new JWTController)->decrypt($encrypted_token[1]);
 
@@ -75,7 +75,7 @@ class JWTController
       throw new \Exception("Token doesn't contain expected structure.");
     }
 
-    // deconstruct and decode token structure
+    // split and decode token structure
     list($header, $payload, $signature) = explode('.', $token);
     $decoded_header = $this->decode_token_structure($header);
     $decoded_payload = $this->decode_token_structure($payload);
@@ -94,9 +94,6 @@ class JWTController
     {
       throw new \Exception('Token expired.');
     }
-
-    // $url = $decoded_payload['iss'] . '/.well-known/oauth-authorization-server';
-    // $keys = (new TokenModel)->get_keys($url);
 
     $stored_token = new JWTModel();
     $jti = filter_var($decoded_payload['jti'], FILTER_SANITIZE_STRING);
@@ -125,16 +122,21 @@ class JWTController
     return true;
   }
 
+  public function decode_token()
+  {
+    //
+  }
+
   public function generate_access_token($scope = null)
   {
     // response format from https://tools.ietf.org/html/rfc6749#section-5.1
 
     $encrypted_token = $this->get_token_from_header();
 
-    if (strpos($encrypted_token[0], 'Bearer'))
-    {
-      throw new \Exception('Invalid token type.');
-    }
+    // if (strpos($encrypted_token[0], 'Bearer'))
+    // {
+    //   throw new \Exception('Invalid token type.');
+    // }
 
     $token_type = explode(' ', $encrypted_token[0]);
     $access_token = [
@@ -151,15 +153,15 @@ class JWTController
   {
     $encrypted_token = $this->get_token_from_header();
 
-    if (strpos($encrypted_token[0], 'Bearer'))
-    {
-      throw new \Exception('Invalid token type.');
-    }
-
-    if (!isset($encrypted_token[1]))
-    {
-      throw new \Exception('Token not found.');
-    }
+    // if (strpos($encrypted_token[0], 'Bearer'))
+    // {
+    //   throw new \Exception('Invalid token type.');
+    // }
+    //
+    // if (!isset($encrypted_token[1]))
+    // {
+    //   throw new \Exception('Token not found.');
+    // }
 
     $jwt = filter_var($encrypted_token[1], FILTER_SANITIZE_STRING);
     $token = new JWTModel();
@@ -189,15 +191,15 @@ class JWTController
   {
     $encrypted_token = $this->get_token_from_header();
 
-    if (strpos($encrypted_token[0], 'Bearer'))
-    {
-      throw new \Exception('Invalid token type.');
-    }
-
-    if (!isset($encrypted_token[1]))
-    {
-      throw new \Exception('Token not found.');
-    }
+    // if (strpos($encrypted_token[0], 'Bearer'))
+    // {
+    //   throw new \Exception('Invalid token type.');
+    // }
+    //
+    // if (!isset($encrypted_token[1]))
+    // {
+    //   throw new \Exception('Token not found.');
+    // }
 
     $jwt = filter_var($encrypted_token[1], FILTER_SANITIZE_STRING);
     $token = new JWTModel();
@@ -216,7 +218,7 @@ class JWTController
     return true;
   }
 
-  protected function get_token_from_header()
+  public function get_token_from_header()
   {
     if (array_key_exists('HTTP_AUTHORIZATION', $_SERVER))
     {
@@ -231,9 +233,21 @@ class JWTController
       throw new \Exception('Unauthorized.');
     }
 
-    if (preg_match('/Bearer\s(\S+)/', $authorization_header, $matches) === false)
+    $token_type = explode(' ', $authorization_header)[0];
+
+    if (!preg_match("/$token_type\s(\S+)/", $authorization_header, $matches))
     {
       throw new \Exception('Token type not found.');
+    }
+
+    if (strpos($matches[0], $token_type))
+    {
+      throw new \Exception('Invalid token type.');
+    }
+
+    if (!isset($matches[1]))
+    {
+      throw new \Exception('Token not found.');
     }
 
     return $matches;
