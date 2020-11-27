@@ -5,7 +5,7 @@ class IndexController
 
   public static function route_requests($uri, $request_method)
   {
-    $valid_uris = ['', 't_request', 'at_request', 'refresh_token', 'rt_request'];
+    $valid_uris = ['', 'request_token', 'access_token', 'refresh_token', 'revoke_token'];
 
     if (in_array($uri, $valid_uris))
     {
@@ -13,7 +13,7 @@ class IndexController
       {
         UserController::login_form();
       }
-      elseif ($uri === 't_request' && $request_method === 'POST')
+      elseif ($uri === 'request_token' && $request_method === 'POST')
       {
         CurlController::token_request();
       }
@@ -21,7 +21,7 @@ class IndexController
       {
         if ((new JWTController)->verify() && $request_method === 'GET')
         {
-          if ($uri === 'at_request')
+          if ($uri === 'access_token')
           {
             CurlController::access_token_request();
           }
@@ -29,7 +29,7 @@ class IndexController
           {
             CurlController::refresh_token_request();
           }
-          elseif ($uri === 'rt_request')
+          elseif ($uri === 'revoke_token')
           {
             CurlController::revoke_token_request();
           }

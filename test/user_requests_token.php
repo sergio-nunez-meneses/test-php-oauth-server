@@ -36,12 +36,17 @@ echo "\n\n$refresh_token";
 echo "\n\nYour token has been refreshed, you still have access to our services.\n\n";
 
 // logout and revoke token (since token has been replaced, this doesn't work)
-$logout = CurlController::request_test($access_token, 'http://ser.local/rt_request');
+$logout = CurlController::request_test($access_token, 'http://ser.local/revoke_token');
 
 if ($logout)
 {
   echo "\n\nUser logged out.\n\n";
 }
+
+$payload = (new JWTController)->get_payload();
+
+echo "\n\n" . $payload;
+echo "\n\nThis is the token's payload.\n\n";
 
 // user credentials are entered, base64 encoded, and sent to the authorization server for authorization token request
 function get_token($username, $password, $uri, $scope = null) {

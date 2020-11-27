@@ -3,7 +3,7 @@ require_once('../tools/constants.php');
 
 class JWTController
 {
-  // jwt generation, encryption, decryption and validation for performing oauth 2.0 client credentials grant type (see https://tools.ietf.org/html/rfc6749#section-4.4)
+  // jwt generation, encryption, decryption and validation for performing oauth 2.0 client credentials grant type-ish (see https://tools.ietf.org/html/rfc6749#section-4.4)
 
   public function generate($user_id, $algorithm = 'HS256')
   {
@@ -42,22 +42,85 @@ class JWTController
     return $encrypted_token;
   }
 
+  // this method must be changed
+  public function generate_access_token($scope = null)
+  {
+    // response format from https://tools.ietf.org/html/rfc6749#section-5.1
+
+    $encrypted_token = $this->get_token_from_header(); // $this->generate_jti();
+    $token_type = explode(' ', $encrypted_token[0]); // remove
+
+    $access_token = [
+      'access_token' => $encrypted_token[1], //
+      'token_type' => $token_type[0],
+      'expires_in' => 3600,
+      'scope' => $scope
+    ];
+
+    return json_encode($access_token);
+  }
+
+  public function verify_access_token()
+  {
+    // code...
+  }
+
+  public function refresh_token()
+  {
+    // $encrypted_token = $this->get_token_from_header();
+    // if (!(new JWTController)->verify($encrypted_token)) throw new \Exception('Invalid request.');
+
+    $encrypted_token = $this->get_token_from_header();
+    $jwt = filter_var($encrypted_token[1], FILTER_SANITIZE_STRING);
+    $token = new JWTModel();
+    $stored_token = $token->find_by_token($jwt);
+
+    if (!$stored_token)
+    {
+      throw new \Exception('Invalid token.');
+    }
+
+    $new_token = $this->generate($stored_token['users_id']);
+
+    if (empty($new_token))
+    {
+      throw new \Exception("Token couldn't be generated.");
+    }
+
+    if (!$token->delete($stored_token['jti']))
+    {
+      throw new \Exception('Failed to revoke token.');
+    }
+
+    return $new_token;
+  }
+
+  public function revoke_token()
+  {
+    // optimize
+    $encrypted_token = $this->get_token_from_header();
+    $jwt = filter_var($encrypted_token[1], FILTER_SANITIZE_STRING);
+    $token = new JWTModel();
+    $stored_token = $token->find_by_token($jwt);
+
+    if (!$stored_token)
+    {
+      throw new \Exception('Invalid token.');
+    }
+
+    if (!$token->delete($stored_token['jti']))
+    {
+      throw new \Exception('Failed to revoke token.');
+    }
+
+    return true;
+  }
+
   public function verify()
   {
     // jwt validation from https://tools.ietf.org/html/rfc7519#section-7.2 , plus public key decryption
 
     $encrypted_token = $this->get_token_from_header();
-
-    // if (strpos($encrypted_token[0], 'Bearer'))
-    // {
-    //   throw new \Exception('Invalid token type.');
-    // }
-    //
-    // if (!isset($encrypted_token[1]))
-    // {
-    //   throw new \Exception('Token not found.');
-    // }
-
     $token = (new JWTController)->decrypt_token($encrypted_token[1]);
 
     if (empty($token))
@@ -122,100 +185,73 @@ class JWTController
     return true;
   }
 
-  public function decode_token()
+  private function create_header($algorithm)
   {
-    //
+    // jose header format from https://tools.ietf.org/html/rfc7519#section-5
+
+    if ($algorithm !== 'HS256')
+    {
+      throw new \Exception('Invalid or unsupported algorithm.');
+    }
+
+    return [
+      'typ' => 'JWT',
+      'alg' => $algorithm
+    ];
   }
 
-  public function generate_access_token($scope = null)
+  private function create_payload($user_id, $scope = null)
   {
-    // response format from https://tools.ietf.org/html/rfc6749#section-5.1
+    // jwt claims format from https://tools.ietf.org/html/rfc7519#section-4
 
-    $encrypted_token = $this->get_token_from_header();
-
-    // if (strpos($encrypted_token[0], 'Bearer'))
-    // {
-    //   throw new \Exception('Invalid token type.');
-    // }
-
-    $token_type = explode(' ', $encrypted_token[0]);
-    $access_token = [
-      'access_token' => $encrypted_token[1],
-      'token_type' => $token_type[0],
-      'expires_in' => 3600,
+    $jti = $this->generate_jti(); //  $this->generate_access_token()
+    $iat = time();
+    $exp = $iat + 60 * 120 * 1 * 1; // expiration time set for an hour from now
+    $payload = [
+      'jti' => $jti,
+      'id_user' => $user_id,
+      'iss' => ISSUER, // get from database ?
+      'sub' => 'http://service.local/allowed-service', // get from database ?
+      'iat' => $iat,
+      'exp' => $exp,
+      'token_type' => 'Bearer', // get from database ?
       'scope' => $scope
     ];
 
-    return json_encode($access_token);
+    return $payload;
   }
 
-  public function refresh()
+  private function create_signature($input, $key, $algorithm)
   {
-    $encrypted_token = $this->get_token_from_header();
-
-    // if (strpos($encrypted_token[0], 'Bearer'))
-    // {
-    //   throw new \Exception('Invalid token type.');
-    // }
-    //
-    // if (!isset($encrypted_token[1]))
-    // {
-    //   throw new \Exception('Token not found.');
-    // }
-
-    $jwt = filter_var($encrypted_token[1], FILTER_SANITIZE_STRING);
-    $token = new JWTModel();
-    $stored_token = $token->find_by_token($jwt);
-
-    if (!$stored_token)
+    if ($algorithm === 'HS256')
     {
-      throw new \Exception('Invalid token.');
+      $algorithm = OPENSSL_ALGO_SHA256;
+    }
+    else
+    {
+      throw new \Exception('Invalid or unsupported sign algorithm.');
     }
 
-    $new_token = $this->generate($stored_token['users_id']);
-
-    if (empty($new_token))
+    if (!openssl_sign($input, $signature, $key, $algorithm))
     {
-      throw new \Exception("Token couldn't be generated.");
+      throw new \Exception("Couldn't signed token.");
     }
 
-    if (!$token->delete($stored_token['jti']))
-    {
-      throw new \Exception('Failed to revoke token.');
-    }
-
-    return $new_token;
+    return $signature;
   }
 
-  public function revoke()
+  private function verify_signature($signature, $input, $key, $algorithm)
   {
-    $encrypted_token = $this->get_token_from_header();
-
-    // if (strpos($encrypted_token[0], 'Bearer'))
-    // {
-    //   throw new \Exception('Invalid token type.');
-    // }
-    //
-    // if (!isset($encrypted_token[1]))
-    // {
-    //   throw new \Exception('Token not found.');
-    // }
-
-    $jwt = filter_var($encrypted_token[1], FILTER_SANITIZE_STRING);
-    $token = new JWTModel();
-    $stored_token = $token->find_by_token($jwt);
-
-    if (!$stored_token)
+    if ($algorithm === 'HS256')
     {
-      throw new \Exception('Invalid token.');
+      $algorithm = OPENSSL_ALGO_SHA256;
+    }
+    else
+    {
+      throw new \Exception('Invalid or unsupported sign algorithm.');
     }
 
-    if (!$token->delete($stored_token['jti']))
-    {
-      throw new \Exception('Failed to revoke token.');
-    }
-
-    return true;
+    return openssl_verify($signature, $input, $key, $algorithm);
   }
 
   public function get_token_from_header()
@@ -253,43 +289,7 @@ class JWTController
     return $matches;
   }
 
-  protected function create_header($algorithm)
-  {
-    // jose header format from https://tools.ietf.org/html/rfc7519#section-5
-
-    if ($algorithm !== 'HS256')
-    {
-      throw new \Exception('Invalid or unsupported algorithm.');
-    }
-
-    return [
-      'typ' => 'JWT',
-      'alg' => $algorithm
-    ];
-  }
-
-  protected function create_payload($user_id, $scope = null)
-  {
-    // jwt claims format from https://tools.ietf.org/html/rfc7519#section-4
-
-    $jti = $this->generate_jti(); //  $this->generate_access_token()
-    $iat = time();
-    $exp = $iat + 60 * 120 * 1 * 1; // expiration time set for an hour from now
-    $payload = [
-      'jti' => $jti,
-      'id_user' => $user_id,
-      'iss' => ISSUER, // get from database ?
-      'sub' => 'http://service.local/allowed-service', // get from database ?
-      'iat' => $iat,
-      'exp' => $exp,
-      'token_type' => 'Bearer', // get from database ?
-      'scope' => $scope
-    ];
-
-    return $payload;
-  }
-
-  protected function generate_jti($lenght = 40)
+  private function generate_jti($lenght = 40)
   {
     if (function_exists('random_bytes'))
     {
@@ -311,7 +311,7 @@ class JWTController
     return substr(bin2hex($bytes), 0, $lenght);
   }
 
-  protected function get_private_key()
+  private function get_private_key()
   {
     $private_key = file_get_contents('../keys/private.key');
 
@@ -321,7 +321,7 @@ class JWTController
     }
   }
 
-  protected function generate_private_key()
+  private function generate_private_key()
   {
     // create openssl resource and save private key in a file
     $res = openssl_pkey_new([
@@ -337,7 +337,7 @@ class JWTController
     }
   }
 
-  protected function get_public_key($private_key)
+  private function get_public_key($private_key)
   {
     // create public key from resource
     $res = openssl_pkey_get_private($private_key);
@@ -357,40 +357,7 @@ class JWTController
     return $public_key;
   }
 
-  protected function create_signature($input, $key, $algorithm)
-  {
-    if ($algorithm === 'HS256')
-    {
-      $algorithm = OPENSSL_ALGO_SHA256;
-    }
-    else
-    {
-      throw new \Exception('Invalid or unsupported sign algorithm.');
-    }
-
-    if (!openssl_sign($input, $signature, $key, $algorithm))
-    {
-      throw new \Exception("Couldn't signed token.");
-    }
-
-    return $signature;
-  }
-
-  protected function verify_signature($signature, $input, $key, $algorithm)
-  {
-    if ($algorithm === 'HS256')
-    {
-      $algorithm = OPENSSL_ALGO_SHA256;
-    }
-    else
-    {
-      throw new \Exception('Invalid or unsupported sign algorithm.');
-    }
-
-    return openssl_verify($signature, $input, $key, $algorithm);
-  }
-
-  protected function encrypt_token($input)
+  private function encrypt_token($input)
   {
     // this for 2048 bit key for example, leaving some room
     $input = str_split($input, 200);
@@ -437,24 +404,24 @@ class JWTController
     return $decrypted_token;
   }
 
-  protected function encode_token_structure($array)
+  private function encode_token_structure($array)
   {
     // if (!json_encode($input)) throw new \Exception('Error encoding input.');
     return $this->base64_encode_url(json_encode($array));
   }
 
-  protected function decode_token_structure($array)
+  private function decode_token_structure($array)
   {
     // if (!json_decode($input)) throw new \Exception('Error decoding input.');
     return json_decode(base64_decode($array), true);
   }
 
-  protected function base64_encode_url($string)
+  private function base64_encode_url($string)
   {
     return rtrim(strtr(base64_encode($string), '+/', '-_'), '=');
   }
 
-  protected function base64_decode_url($string)
+  private function base64_decode_url($string)
   {
     // if (!base64_decode($input)) throw new \Exception('Error decoding input.');
     return base64_decode(str_pad(strtr($string, '-_', '+/'), strlen($string) % 4, '=', STR_PAD_RIGHT));

@@ -43,41 +43,21 @@ class CurlController
     }
   }
 
+  // jwt controller's method handle_request
   public static function token_request()
   {
-    // if (array_key_exists('HTTP_AUTHORIZATION', $_SERVER))
-    // {
-    //   $authorization_header = $_SERVER['HTTP_AUTHORIZATION'];
-    // }
-    // elseif (array_key_exists('Authorization', $_SERVER))
-    // {
-    //   $authorization_header = $_SERVER['Authorization'];
-    // }
-    // else
-    // {
-    //   echo "\nUnauthorized.";
-    //   return;
-    // }
-    //
-    // preg_match('/Basic\s(\S+)/', $authorization_header, $matches);
-    //
-    // if (strpos($matches[0], 'Basic'))
-    // {
-    //   echo "\nInvalid token type.";
-    //   return;
-    // }
-    //
-    // if (!isset($matches[1]))
-    // {
-    //   echo "\nClient credentials not found.";
-    //   return;
-    // }
-
-    $client_credentials = (new JWTController)->get_token_from_header();
+    $token = new JWTController();
+    $client_credentials = $token->get_token_from_header();
 
     list($username, $password) = explode(':', base64_decode($client_credentials[1]));
     $user = UserController::check_credentials($username, $password);
-    $token = new JWTController();
+
+    /*
+    if (user already has a token)
+      if (verify token === true)
+        redirect user
+    */
+
     $generated_token = $token->generate($user['id']);
 
     if (empty($generated_token))
@@ -86,9 +66,10 @@ class CurlController
       return;
     }
 
+    // return an access token, not an authorization one
     $authorization_token = [
       'authorization_token' => $generated_token,
-      'redirect_uri' => 'http://ser.local/at_request'
+      'redirect_uri' => 'http://ser.local/access_token'
     ];
 
     echo json_encode($authorization_token);
@@ -101,11 +82,11 @@ class CurlController
 
   public static function refresh_token_request()
   {
-    echo (new JWTController)->refresh();
+    echo (new JWTController)->refresh_token();
   }
 
   public static function revoke_token_request()
   {
-    echo (new JWTController)->revoke();
+    echo (new JWTController)->revoke_token();
   }
 }
