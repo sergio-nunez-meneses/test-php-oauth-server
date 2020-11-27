@@ -9,7 +9,7 @@ $new_token = $token->generate($argv[1]);
 
 // print results
 echo "Encrypted token: \n$new_token";
-echo "\n\nDecrypted token: \n" . $token->decrypt($new_token);
+echo "\n\nDecrypted token: \n" . $token->decrypt_token($new_token);
 
 // since token is not get from header, this throws an error
 if ($token->verify($new_token)) {

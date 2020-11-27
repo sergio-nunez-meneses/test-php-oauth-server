@@ -11,8 +11,8 @@ class JWTController
 
     $user_id = filter_var($user_id, FILTER_SANITIZE_STRING);
 
-    $headers = $this->generate_header($algorithm);
-    $payload = $this->generate_payload($user_id, 'some_scope');
+    $headers = $this->create_header($algorithm);
+    $payload = $this->create_payload($user_id, 'some_scope');
     $token = [
       $this->encode_token_structure($headers),
       $this->encode_token_structure($payload)
@@ -20,11 +20,11 @@ class JWTController
     $sign_input = implode('.', $token);
 
     $private_key = $this->get_private_key();
-    $signature = $this->sign($sign_input, $private_key, $algorithm);
+    $signature = $this->create_signature($sign_input, $private_key, $algorithm);
 
     $token[] = $this->base64_encode_url($signature);
     $token = implode('.', $token);
-    $encrypted_token = $this->encrypt($token);
+    $encrypted_token = $this->encrypt_token($token);
 
     if (empty($encrypted_token))
     {
@@ -58,7 +58,7 @@ class JWTController
     //   throw new \Exception('Token not found.');
     // }
 
-    $token = (new JWTController)->decrypt($encrypted_token[1]);
+    $token = (new JWTController)->decrypt_token($encrypted_token[1]);
 
     if (empty($token))
     {
@@ -111,7 +111,7 @@ class JWTController
     }
 
     $private_key = $this->get_private_key();
-    $public_key = $this->generate_public_key($private_key);
+    $public_key = $this->get_public_key($private_key);
     $signature = $this->verify_signature("$header.$payload", $this->base64_decode_url($signature), $public_key['key'], $decoded_header['alg']);
 
     if (!$signature)
@@ -253,7 +253,7 @@ class JWTController
     return $matches;
   }
 
-  protected function generate_header($algorithm)
+  protected function create_header($algorithm)
   {
     // jose header format from https://tools.ietf.org/html/rfc7519#section-5
 
@@ -268,7 +268,7 @@ class JWTController
     ];
   }
 
-  protected function generate_payload($user_id, $scope = null)
+  protected function create_payload($user_id, $scope = null)
   {
     // jwt claims format from https://tools.ietf.org/html/rfc7519#section-4
 
@@ -289,9 +289,26 @@ class JWTController
     return $payload;
   }
 
-  protected function generate_jti()
+  protected function generate_jti($lenght = 40)
   {
-    return uniqid('', true);
+    if (function_exists('random_bytes'))
+    {
+      $bytes = random_bytes(ceil($lenght / 2));
+    }
+    elseif (function_exists('openssl_random_pseudo_bytes'))
+    {
+      $bytes = openssl_random_pseudo_bytes(ceil($lenght / 2));
+    }
+    elseif (function_exists('mcrypt_create_iv'))
+    {
+      $bytes = mcrypt_create_iv(ceil($lenght / 2), MCRYPT_DEV_URANDOM);
+    }
+    else
+    {
+      $bytes = mt_rand() . mt_rand() . mt_rand() . mt_rand() . microtime(true) . uniqid(mt_rand(), true);
+    }
+
+    return substr(bin2hex($bytes), 0, $lenght);
   }
 
   protected function get_private_key()
@@ -320,7 +337,7 @@ class JWTController
     }
   }
 
-  protected function generate_public_key($private_key)
+  protected function get_public_key($private_key)
   {
     // create public key from resource
     $res = openssl_pkey_get_private($private_key);
@@ -340,7 +357,7 @@ class JWTController
     return $public_key;
   }
 
-  protected function sign($input, $key, $algorithm)
+  protected function create_signature($input, $key, $algorithm)
   {
     if ($algorithm === 'HS256')
     {
@@ -373,7 +390,7 @@ class JWTController
     return openssl_verify($signature, $input, $key, $algorithm);
   }
 
-  protected function encrypt($input)
+  protected function encrypt_token($input)
   {
     // this for 2048 bit key for example, leaving some room
     $input = str_split($input, 200);
@@ -397,12 +414,12 @@ class JWTController
     return base64_encode($encrypted_token);
   }
 
-  public function decrypt($token)
+  public function decrypt_token($token)
   {
     // decode must be done before spliting for getting the binary String
     $token = str_split(base64_decode($token), 256);
     $private_key = $this->get_private_key();
-    $public_key = $this->generate_public_key($private_key);
+    $public_key = $this->get_public_key($private_key);
     $decrypted_token = '';
 
     foreach ($token as $chunk)
