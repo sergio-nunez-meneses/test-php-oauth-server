@@ -6,7 +6,9 @@ php user_requests_token.php username password uri scope (optional)
 
 require_once('../include/class_autoloader.php');
 
-// login and request token
+echo "\n\nRequest started at " . date('H:i:s') . "\n";
+
+// login, request and validate token
 $token = get_token($argv[1], $argv[2], $argv[3], $argv[4]);
 
 if (empty($token)) {
@@ -14,6 +16,7 @@ if (empty($token)) {
 }
 
 echo "\n\n" . $token['authorization_token'];
+echo "\n\nYour token has been generated.\n\n";
 
 $access_token = CurlController::request_test($token['authorization_token'], $token['redirect_uri']);
 $access_token = json_decode($access_token, true)['access_token'];
@@ -44,6 +47,8 @@ if ($logout)
 {
   echo "\n\nUser logged out.\n\n";
 }
+
+echo "\n\nRequest ended at " . date('H:i:s') . "\n\n";
 
 // user credentials are entered, base64 encoded, and sent to the authorization server for authorization token request
 function get_token($username, $password, $uri, $scope = null) {

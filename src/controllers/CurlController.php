@@ -54,7 +54,6 @@ class CurlController
 
     $stored_token = (new JWTModel)->find_by_user($user['id']);
 
-    // conditions not tested yet
     if ($stored_token)
     {
       if ($token->verify($stored_token['jwt']))

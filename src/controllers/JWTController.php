@@ -42,6 +42,87 @@ class JWTController
     return $encrypted_token;
   }
 
+  public function verify($encrypted_token = null)
+  {
+    // jwt validation from https://tools.ietf.org/html/rfc7519#section-7.2 , plus public key decryption
+
+    if (is_null($encrypted_token))
+    {
+      $encrypted_token = $this->get_token_from_header()[1];
+    }
+
+    $token = (new JWTController)->decrypt_token($encrypted_token);
+
+    if (empty($token))
+    {
+      throw new \Exception("Token couldn't be decrypted.");
+    }
+
+    if (!stristr($token, '.'))
+    {
+      throw new \Exception("Token doesn't contain expected delimiter.");
+    }
+
+    if (count(explode('.', $token)) !== 3)
+    {
+      throw new \Exception("Token doesn't contain expected structure.");
+    }
+
+    // split and decode token structure
+    list($header, $payload, $signature) = explode('.', $token);
+    $decoded_header = $this->decode_token_structure($header);
+    $decoded_payload = $this->decode_token_structure($payload);
+
+    if ($decoded_payload['iss'] !== ISSUER)
+    {
+      throw new \Exception("Token doesn't contain expected issuer.");
+    }
+
+    if ($decoded_payload['iat'] > time())
+    {
+      throw new \Exception('Token was issued in the future (well played Jonas Kahnwald).');
+    }
+
+    if ($decoded_payload['exp'] < time())
+    {
+      throw new \Exception('Token expired.');
+      // refresh token automatically ?
+    }
+
+    $stored_token = new JWTModel();
+    $jti = filter_var($decoded_payload['jti'], FILTER_SANITIZE_STRING);
+
+    if (!$stored_token->find_by_jti($jti))
+    {
+      throw new \Exception('Invalid token id.');
+    }
+
+    $jwt = filter_var($encrypted_token, FILTER_SANITIZE_STRING);
+
+    if (!$stored_token->find_by_jwt($jwt))
+    {
+      throw new \Exception('Invalid token.');
+    }
+
+    // a bit redundant (see line 55 of curl controller)
+    // maybe, add the variable $has_token: if it's false, then perform this condition
+    if (!$stored_token->find_by_user($decoded_payload['id_user']))
+    {
+      throw new \Exception('Invalid user id.');
+    }
+
+    $private_key = $this->get_private_key();
+    $public_key = $this->get_public_key($private_key);
+    $signature = $this->verify_signature("$header.$payload", $this->base64_decode_url($signature), $public_key['key'], $decoded_header['alg']);
+
+    if (!$signature)
+    {
+      throw new \Exception("Token's signature couldn't be verified.");
+    }
+
+    return true;
+  }
+
   // this method must be changed
   public function generate_access_token($scope = null)
   {
@@ -60,6 +141,7 @@ class JWTController
     return json_encode($access_token);
   }
 
+  // method not tested yet
   public function verify_access_token()
   {
     // code...
@@ -111,79 +193,6 @@ class JWTController
     if (!$token->delete($stored_token['jti']))
     {
       throw new \Exception('Failed to revoke token.');
-    }
-
-    return true;
-  }
-
-  public function verify($encrypted_token = null)
-  {
-    // jwt validation from https://tools.ietf.org/html/rfc7519#section-7.2 , plus public key decryption
-
-    if (is_null($encrypted_token))
-    {
-      $encrypted_token = $this->get_token_from_header()[1];
-    }
-
-    $token = (new JWTController)->decrypt_token($encrypted_token);
-
-    if (empty($token))
-    {
-      throw new \Exception("Token couldn't be decrypted.");
-    }
-
-    if (!stristr($token, '.'))
-    {
-      throw new \Exception("Token doesn't contain expected delimiter.");
-    }
-
-    if (count(explode('.', $token)) !== 3)
-    {
-      throw new \Exception("Token doesn't contain expected structure.");
-    }
-
-    // split and decode token structure
-    list($header, $payload, $signature) = explode('.', $token);
-    $decoded_header = $this->decode_token_structure($header);
-    $decoded_payload = $this->decode_token_structure($payload);
-
-    if ($decoded_payload['iss'] !== ISSUER)
-    {
-      throw new \Exception("Token doesn't contain expected issuer.");
-    }
-
-    if ($decoded_payload['iat'] > time())
-    {
-      throw new \Exception('Token was issued in the future (well played Jonas Kahnwald).');
-    }
-
-    if ($decoded_payload['exp'] < time())
-    {
-      throw new \Exception('Token expired.');
-    }
-
-    $stored_token = new JWTModel();
-    $jti = filter_var($decoded_payload['jti'], FILTER_SANITIZE_STRING);
-
-    if (!$stored_token->find_by_jti($jti))
-    {
-      throw new \Exception('Invalid token id.');
-    }
-
-    $jwt = filter_var($encrypted_token, FILTER_SANITIZE_STRING);
-
-    if (!$stored_token->find_by_jwt($jwt))
-    {
-      throw new \Exception('Invalid token.');
-    }
-
-    $private_key = $this->get_private_key();
-    $public_key = $this->get_public_key($private_key);
-    $signature = $this->verify_signature("$header.$payload", $this->base64_decode_url($signature), $public_key['key'], $decoded_header['alg']);
-
-    if (!$signature)
-    {
-      throw new \Exception("Token's signature couldn't be verified.");
     }
 
     return true;
