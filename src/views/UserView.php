@@ -5,6 +5,7 @@ class UserView
 
   public static function display()
   {
+    $title = 'Login';
     ob_start();
     ?>
     <div class="container my-5">

@@ -20,6 +20,18 @@ class JWTModel extends DatabaseModel
   }
 
   // method not tested yet
+  public function read()
+  {
+    $sql = "SELECT * FROM tokens";
+    $res = $this->run_query($sql);
+
+    if ($res->rowCount() > 0)
+    {
+      return $res;
+    }
+  }
+
+  // method not tested yet
   public function update($jti, $new_jti)
   {
     $sql = "UPDATE tokens SET jti = :new_jti, updated_at = NOW() WHERE jti = :jti";
@@ -53,10 +65,17 @@ class JWTModel extends DatabaseModel
     return $res;
   }
 
-  public function find_by_token($jwt)
+  public function find_by_jwt($jwt)
   {
     $sql = "SELECT * FROM tokens WHERE jwt =:jwt";
     $res = $this->run_query($sql, ['jwt' => $jwt])->fetch();
+    return $res;
+  }
+
+  public function find_by_user($user_id)
+  {
+    $sql = "SELECT * FROM tokens WHERE users_id =:user_id ORDER BY created_at DESC LIMIT 1";
+    $res = $this->run_query($sql, ['user_id' => $user_id])->fetch();
     return $res;
   }
 }

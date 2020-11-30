@@ -52,11 +52,23 @@ class CurlController
     list($username, $password) = explode(':', base64_decode($client_credentials[1]));
     $user = UserController::check_credentials($username, $password);
 
-    /*
-    if (user already has a token)
-      if (verify token === true)
-        redirect user
-    */
+    $stored_token = (new JWTModel)->find_by_user($user['id']);
+
+    // conditions not tested yet
+    if ($stored_token)
+    {
+      if ($token->verify($stored_token['jwt']))
+      {
+        // redirect user
+        $authorization_token = [
+          'authorization_token' => $stored_token['jwt'],
+          'redirect_uri' => 'http://ser.local/access_token'
+        ];
+
+        echo json_encode($authorization_token);
+        return;
+      }
+    }
 
     $generated_token = $token->generate($user['id']);
 
@@ -73,6 +85,7 @@ class CurlController
     ];
 
     echo json_encode($authorization_token);
+    return;
   }
 
   public static function access_token_request()

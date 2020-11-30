@@ -73,7 +73,7 @@ class JWTController
     $encrypted_token = $this->get_token_from_header();
     $jwt = filter_var($encrypted_token[1], FILTER_SANITIZE_STRING);
     $token = new JWTModel();
-    $stored_token = $token->find_by_token($jwt);
+    $stored_token = $token->find_by_jwt($jwt);
 
     if (!$stored_token)
     {
@@ -101,7 +101,7 @@ class JWTController
     $encrypted_token = $this->get_token_from_header();
     $jwt = filter_var($encrypted_token[1], FILTER_SANITIZE_STRING);
     $token = new JWTModel();
-    $stored_token = $token->find_by_token($jwt);
+    $stored_token = $token->find_by_jwt($jwt);
 
     if (!$stored_token)
     {
@@ -116,12 +116,16 @@ class JWTController
     return true;
   }
 
-  public function verify()
+  public function verify($encrypted_token = null)
   {
     // jwt validation from https://tools.ietf.org/html/rfc7519#section-7.2 , plus public key decryption
 
-    $encrypted_token = $this->get_token_from_header();
-    $token = (new JWTController)->decrypt_token($encrypted_token[1]);
+    if (is_null($encrypted_token))
+    {
+      $encrypted_token = $this->get_token_from_header()[1];
+    }
+
+    $token = (new JWTController)->decrypt_token($encrypted_token);
 
     if (empty($token))
     {
@@ -166,9 +170,9 @@ class JWTController
       throw new \Exception('Invalid token id.');
     }
 
-    $jwt = filter_var($encrypted_token[1], FILTER_SANITIZE_STRING);
+    $jwt = filter_var($encrypted_token, FILTER_SANITIZE_STRING);
 
-    if (!$stored_token->find_by_token($jwt))
+    if (!$stored_token->find_by_jwt($jwt))
     {
       throw new \Exception('Invalid token.');
     }

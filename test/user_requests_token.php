@@ -13,6 +13,8 @@ if (empty($token)) {
   echo "\n\nCouldn't generate token.\n";
 }
 
+echo "\n\n" . $token['authorization_token'];
+
 $access_token = CurlController::request_test($token['authorization_token'], $token['redirect_uri']);
 $access_token = json_decode($access_token, true)['access_token'];
 
@@ -42,11 +44,6 @@ if ($logout)
 {
   echo "\n\nUser logged out.\n\n";
 }
-
-$payload = (new JWTController)->get_payload();
-
-echo "\n\n" . $payload;
-echo "\n\nThis is the token's payload.\n\n";
 
 // user credentials are entered, base64 encoded, and sent to the authorization server for authorization token request
 function get_token($username, $password, $uri, $scope = null) {
