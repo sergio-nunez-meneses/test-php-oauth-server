@@ -51,7 +51,7 @@ class JWTController
       $encrypted_token = $this->get_token_from_header()[1];
     }
 
-    $token = (new JWTController)->decrypt_token($encrypted_token);
+    $token = $this->decrypt_token($encrypted_token);
 
     if (empty($token))
     {
@@ -105,7 +105,7 @@ class JWTController
     }
 
     // a bit redundant (see line 55 of curl controller)
-    // maybe, add the variable $has_token: if it's false, then perform this condition
+    // maybe, add a variable $has_token: if it's false, perform this condition
     if (!$stored_token->find_by_user($decoded_payload['id_user']))
     {
       throw new \Exception('Invalid user id.');
@@ -150,7 +150,7 @@ class JWTController
   public function refresh_token()
   {
     // $encrypted_token = $this->get_token_from_header();
-    // if (!(new JWTController)->verify($encrypted_token)) throw new \Exception('Invalid request.');
+    // if (!$this->verify($encrypted_token)) throw new \Exception('Invalid request.');
 
     $encrypted_token = $this->get_token_from_header();
     $jwt = filter_var($encrypted_token[1], FILTER_SANITIZE_STRING);
