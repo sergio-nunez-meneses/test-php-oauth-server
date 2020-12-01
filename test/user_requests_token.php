@@ -17,8 +17,8 @@ if (empty($token)) {
   echo "\n\nCouldn't generate token.\n";
 }
 
-echo "\n\n" . $token['authorization_token'];
-echo "\n\nYour token has been generated.\n\n";
+echo "\n\nYour token has been generated.";
+echo "\n\nJWT: " . $token['authorization_token'] . "\n\n";
 
 $access_token = CurlController::request_test($token['authorization_token'], $token['redirect_uri']);
 $access_token = json_decode($access_token, true);
@@ -27,10 +27,11 @@ if (empty($access_token)) {
   echo "\n\nUnauthorized.\n";
 }
 
-echo "\n\n" . $access_token['access_token'];
-echo "\n\n" . $access_token['user_id'];
+echo "\n\nEncrypted user ID: " . $access_token['user_id'];
 echo "\n\nYour token has been validated, you can now access our services.";
 echo "\nRedirecting to http://services.local/service\n\n";
+
+echo "\n\nEncrypted access token: " . (new JWTController)->encrypt_access_token($access_token) . "\n\n";
 
 // request refresh token
 $refresh_token = CurlController::request_test($access_token['access_token'], 'http://ser.local/refresh_token');
@@ -39,8 +40,8 @@ if (empty($refresh_token)) {
   echo "\n\nUnauthorized.\n";
 }
 
-echo "\n\n$refresh_token";
-echo "\n\nYour token has been refreshed, you still have access to our services.\n\n";
+echo "\n\nYour token has been refreshed, you still have access to our services.";
+echo "\n\nRefresh token: $refresh_token\n\n";
 
 // logout and revoke token (since token has been replaced, this doesn't work)
 $logout = CurlController::request_test($access_token, 'http://ser.local/revoke_token');
