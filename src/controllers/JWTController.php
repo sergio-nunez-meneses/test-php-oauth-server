@@ -31,7 +31,7 @@ class JWTController
       throw new \Exception("Token couldn't be encrypted.");
     }
 
-    // store token in database
+    // store jwt in database
     $new_token = new JWTModel();
 
     if (!$new_token->create($payload['jti'], $encrypted_token, $user_id))
@@ -99,7 +99,7 @@ class JWTController
 
     if (!$stored_token->find_by_jti($jti))
     {
-      throw new \Exception('Invalid token id.');
+      throw new \Exception('Invalid token ID.');
     }
 
     $jwt = filter_var($encrypted_token, FILTER_SANITIZE_STRING);
@@ -113,7 +113,7 @@ class JWTController
     // maybe, add a variable $has_token: if it's false, perform this condition
     if (!$stored_token->find_by_user($decoded_payload['id_user']))
     {
-      throw new \Exception('Invalid user id.');
+      throw new \Exception('Invalid user ID.');
     }
 
     $private_key = $this->get_private_key();
@@ -129,39 +129,41 @@ class JWTController
   }
 
   // this method must be changed
-  public function generate_access_token($scope = null)
+  public function generate_access_token()
   {
     // response format from https://tools.ietf.org/html/rfc6749#section-5.1
 
-    $stored_token = $this->get_token_from_header()['jwt']; // $this->generate_jti();
-    // $token_type = explode(' ', $encrypted_token[0]); // remove
+    $stored_token = $this->get_token_from_header(); // $this->generate_jti();
+    $user_id = 'agent_' . $this->generate_jti() . $stored_token['users_id'];
+    $encrypted_user_id = $this->encrypt_token($user_id);
+
+    if (empty($encrypted_user_id))
+    {
+      throw new \Exception("User ID couldn't be encrypted.");
+    }
 
     $access_token = [
-      'access_token' => $stored_token, //
+      'access_token' => $stored_token['jwt'],
       'token_type' => 'Bearer',
-      'expires_in' => 3600,
-      'scope' => $scope
+      'user_id' => $encrypted_user_id,
+      'expires_in' => 3600
     ];
+
+    // store access token in database
 
     return json_encode($access_token);
   }
 
   // method not tested yet
-  public function verify_access_token()
+  public function verify_access_token($access_token)
   {
-    // code...
+    // $stored_token = $this->verify($access_token['access_token']);
+
+
   }
 
   public function refresh_token()
   {
-    // $encrypted_token = $this->get_token_from_header();
-    // if (!$this->verify($encrypted_token)) throw new \Exception('Invalid request.');
-
-    // $encrypted_token = $this->get_token_from_header()[1];
-    // $jwt = filter_var($encrypted_token, FILTER_SANITIZE_STRING);
-    // $token = new JWTModel();
-    // $stored_token = $token->find_by_jwt($jwt);
-
     $stored_token = $this->get_token_from_header();
 
     if (!$stored_token)
@@ -186,12 +188,6 @@ class JWTController
 
   public function revoke_token()
   {
-    // optimize
-    // $encrypted_token = $this->get_token_from_header()[1];
-    // $jwt = filter_var($encrypted_token, FILTER_SANITIZE_STRING);
-    // $token = new JWTModel();
-    // $stored_token = $token->find_by_jwt($jwt);
-
     $stored_token = $this->get_token_from_header();
 
     if (!$token)
@@ -226,17 +222,17 @@ class JWTController
   {
     // jwt claims format from https://tools.ietf.org/html/rfc7519#section-4
 
-    $jti = $this->generate_jti(); //  $this->generate_access_token()
+    $jti = $this->generate_jti();
     $iat = time();
-    $exp = $iat + 60 * 120 * 1 * 1; // expiration time set for an hour from now
+    $exp = $iat + 60 * 120 * 1 * 1; // expiration time set to an hour from now
     $payload = [
       'jti' => $jti,
       'id_user' => $user_id,
-      'iss' => ISSUER, // get from database ?
+      'iss' => ISSUER,
       'sub' => 'http://service.local/allowed-service', // get from database ?
-      'iat' => $iat,
+      'iat' => $iat, // add 'nbf' claim
       'exp' => $exp,
-      'token_type' => 'Bearer', // get from database ?
+      'token_type' => 'Bearer',
       'scope' => $scope
     ];
 
@@ -317,10 +313,10 @@ class JWTController
       $jwt = filter_var($matches[1], FILTER_SANITIZE_STRING);
       $stored_token = (new JWTModel)->find_by_jwt($jwt);
 
-      if (!$stored_token)
-      {
-        throw new \Exception("Token wasn't found in database.");
-      }
+      // if (!$stored_token)
+      // {
+      //   throw new \Exception("Token wasn't found in database.");
+      // }
 
       return $stored_token;
     }
@@ -396,7 +392,7 @@ class JWTController
 
   private function encrypt_token($input)
   {
-    // this for 2048 bit key for example, leaving some room
+    // for a 2048 bit key
     $input = str_split($input, 200);
     $private_key = $this->get_private_key();
     $encrypted_token = '';
@@ -405,7 +401,7 @@ class JWTController
     {
       $encrypted_chunk = '';
 
-      // using for example OPENSSL_PKCS1_PADDING as padding
+      // using OPENSSL_PKCS1_PADDING as padding
       if (!openssl_private_encrypt($chunk, $encrypted_chunk, $private_key, OPENSSL_PKCS1_PADDING))
       {
         throw new \Exception(openssl_error_string());
@@ -414,13 +410,12 @@ class JWTController
       $encrypted_token .= $encrypted_chunk;
     }
 
-    // encoding the whole binary String as MIME base 64
     return base64_encode($encrypted_token);
   }
 
   public function decrypt_token($token)
   {
-    // decode must be done before spliting for getting the binary String
+    // decode must be done before spliting
     $token = str_split(base64_decode($token), 256);
     $private_key = $this->get_private_key();
     $public_key = $this->get_public_key($private_key);
