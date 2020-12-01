@@ -132,7 +132,6 @@ class JWTController
     return true;
   }
 
-  // this method must be changed
   public function generate_access_token()
   {
     // response format from https://tools.ietf.org/html/rfc6749#section-5.1
@@ -197,7 +196,7 @@ class JWTController
     if ($access_token['expires_in'] < time())
     {
       throw new \Exception('Access token expired.');
-      // revoke token
+      // revoke access token
     }
 
     // $stored_token = new JWTModel();
@@ -223,7 +222,7 @@ class JWTController
     //   }
     // }
 
-    return json_decode($access_token, true);
+    return $access_token;
   }
 
   public function refresh_token()
