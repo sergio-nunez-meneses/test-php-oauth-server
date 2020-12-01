@@ -13,10 +13,10 @@ date_default_timezone_set('Europe/Paris');
 echo "\n\nRequest started at " . date('H:i:s') . "\n";
 
 // client: login and request authentication token
-$token = CurlController::get_token($argv[1], $argv[2], $argv[3], $argv[4]);
+$token = CurlController::get_token($argv[1], $argv[2], $argv[3]);
 
 if (empty($token)) {
-  echo "\n\nCouldn't generate token.\n\n";
+  exit("\n\nCouldn't generate token.\n\n");
 }
 
 $authentication_token = $token['authentication_token'];
@@ -28,24 +28,26 @@ echo "$authentication_token\n\n";
 $encrypted_authorization_token = CurlController::request($authentication_token, ISSUER . '/access_token');
 
 if (empty($encrypted_authorization_token)) {
-  echo "\n\nUnauthorized.\n";
+  exit("\n\nCouldn't find authorization token.\n");
 }
 
 $authorization_token = (new JWTController)->verify_access_token($encrypted_authorization_token);
 
 if (empty($authorization_token)) {
-  echo "\n\nInvalid authorization token.\n\n";
+  exit("\n\nInvalid authorization token.\n\n");
 }
 
-echo "\n\nYour authentication token has been validated, you can now access our services\n\n";
-echo "User ID: " . $authorization_token['user_id'] . "\n\n";
+$user = (new UserModel)->find_by_id($authorization_token['user_id']);
+
+echo "\n\nYour authentication token has been validated, you can now access our services.\n\n";
+echo "Welcome, " . ucfirst($user['username']) . "\n\n";
 echo "Redirecting to http://services.local/service\n\n";
 
 // service: request refresh token
 $refresh_token = CurlController::request($authentication_token, ISSUER . '/refresh_token');
 
 if (empty($refresh_token)) {
-  echo "\n\nUnauthorized.\n\n";
+  exit("\n\nCouldn't refresh token.\n\n");
 }
 
 echo "\n\nYour token has been refreshed, you still have access to our services:\n\n";

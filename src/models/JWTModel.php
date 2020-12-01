@@ -8,7 +8,7 @@ class JWTModel extends DatabaseModel
     // if (token_type === 'jwt') "INSERT INTO tokens"
     // elseif (token_type === 'access_token') "INSERT INTO access_tokens"
 
-    $sql = "INSERT INTO tokens (jti, jwt, created_at, updated_at, users_id) VALUES (:jti, :jwt, NOW(), NOW(), :user_id)";
+    $sql = "INSERT INTO tokens (jti, jwt, created_at, expires_at, users_id) VALUES (:jti, :jwt, NOW(), NOW() + INTERVAL 1 HOUR, :user_id)";
     $placeholders = [
       'jti' => $jti,
       'jwt' => $jwt,
@@ -37,7 +37,7 @@ class JWTModel extends DatabaseModel
   // method not tested yet
   public function update($jti, $new_jti)
   {
-    $sql = "UPDATE tokens SET jti = :new_jti, updated_at = NOW() WHERE jti = :jti";
+    $sql = "UPDATE tokens SET jti = :new_jti, expires_at = :exp_at WHERE jti = :jti";
     $placeholders = [
       'jti' => $jti,
       'jti' => $new_jti
@@ -79,10 +79,10 @@ class JWTModel extends DatabaseModel
   }
 
   // method not tested yet
-  public function find_by_access_token($access_token)
+  public function find_by_access_token($authorization_token)
   {
-    $sql = "SELECT * FROM access_tokens WHERE access_token =:access_token";
-    $res = $this->run_query($sql, ['access_token' => $access_token])->fetch();
+    $sql = "SELECT * FROM authorization_tokens WHERE at =:authorization_token";
+    $res = $this->run_query($sql, ['authorization_token' => $authorization_token])->fetch();
     return $res;
   }
 

@@ -171,7 +171,6 @@ class JWTController
     return $encrypted_access_token;
   }
 
-  // method not tested yet
   public function verify_access_token($encrypted_access_token = null)
   {
     // if (is_null($encrypted_access_token))
