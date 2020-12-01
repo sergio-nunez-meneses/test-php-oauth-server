@@ -23,6 +23,7 @@ $authentication_token = $token['authentication_token'];
 
 echo "\n\nYour token has been generated:\n\n";
 echo "$authentication_token\n\n";
+echo (new JWTModel)->find_by_jwt($authentication_token)['jti'] . "\n\n";
 
 // service: request authorization token and authorize user
 $encrypted_authorization_token = CurlController::request($authentication_token, ISSUER . '/access_token');
@@ -54,7 +55,7 @@ echo "\n\nYour token has been refreshed, you still have access to our services:\
 echo "$refresh_token\n\n";
 
 // client: logout and revoke authentication token (since authentication token has been replaced in databse, this doesn't work)
-$logout = CurlController::request($authentication_token, 'http://ser.local/revoke_token');
+// $logout = CurlController::request($authentication_token, 'http://ser.local/revoke_token');
 
 if ($logout) {
   echo "\n\nUser logged out.\n\n";

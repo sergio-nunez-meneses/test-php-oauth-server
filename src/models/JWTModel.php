@@ -3,15 +3,20 @@
 class JWTModel extends DatabaseModel
 {
 
-  public function create($jti, $jwt, $user_id)
+  public function create($token_type, $jti, $token, $user_id)
   {
-    // if (token_type === 'jwt') "INSERT INTO tokens"
-    // elseif (token_type === 'access_token') "INSERT INTO access_tokens"
+    if ($token_type === 'authentication')
+    {
+      $sql = "INSERT INTO tokens (jti, jwt, created_at, expires_at, users_id) VALUES (:jti, :token, NOW(), NOW() + INTERVAL 1 HOUR, :user_id)";
+    }
+    elseif ($token_type === 'authorization')
+    {
+      $sql = "INSERT INTO authorization_tokens (jti, at, created_at, expires_at, users_id) VALUES (:jti, :token, NOW(), NOW() + INTERVAL 10 MINUTE, :user_id)";
+    }
 
-    $sql = "INSERT INTO tokens (jti, jwt, created_at, expires_at, users_id) VALUES (:jti, :jwt, NOW(), NOW() + INTERVAL 1 HOUR, :user_id)";
     $placeholders = [
       'jti' => $jti,
-      'jwt' => $jwt,
+      'token' => $token,
       'user_id' => $user_id
     ];
     $res = $this->run_query($sql, $placeholders)->rowCount();
@@ -53,7 +58,7 @@ class JWTModel extends DatabaseModel
   public function delete($jti)
   {
     // if (token_type === 'jwt') "DELETE FROM tokens"
-    // elseif (token_type === 'access_token') "DELETE FROM access_tokens"
+    // elseif (token_type === 'access_token') "DELETE FROM authorization_tokens"
 
     $sql = "DELETE FROM tokens WHERE jti = :jti";
     $res = $this->run_query($sql, ['jti' => $jti])->rowCount();

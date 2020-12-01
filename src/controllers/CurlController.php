@@ -116,10 +116,7 @@ class CurlController
       if ($token->verify($stored_token['jwt']))
       {
         // redirect user
-        $authentication_token = [
-          'authentication_token' => $stored_token['jwt'],
-          'redirect_uri' => 'http://ser.local/access_token'
-        ];
+        $authentication_token = ['authentication_token' => $stored_token['jwt']];
 
         echo json_encode($authentication_token);
         return;
@@ -135,10 +132,7 @@ class CurlController
     }
 
     // return an access token, not an authorization one
-    $authentication_token = [
-      'authentication_token' => $generated_token,
-      'redirect_uri' => 'http://ser.local/access_token'
-    ];
+    $authentication_token = ['authentication_token' => $generated_token];
 
     echo json_encode($authentication_token);
     return;

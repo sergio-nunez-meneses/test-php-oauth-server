@@ -9,6 +9,7 @@ class JWTController
   {
     // jwt creation from https://tools.ietf.org/html/rfc7519#section-7.1 , plus private key encryption
 
+    $token_type = 'authentication';
     $user_id = filter_var($user_id, FILTER_SANITIZE_STRING);
 
     $headers = $this->create_header($algorithm);
@@ -34,7 +35,7 @@ class JWTController
     // store jwt in database
     $new_token = new JWTModel();
 
-    if (!$new_token->create($payload['jti'], $encrypted_token, $user_id))
+    if (!$new_token->create($token_type, $payload['jti'], $encrypted_token, $user_id))
     {
       throw new \Exception("Token couldn't be stored in database.");
     }
@@ -151,12 +152,13 @@ class JWTController
       throw new \Exception("User ID couldn't be encrypted.");
     }
 
+    $token_type = 'authorization';
     $exp = time() + 10 * 60 * 1 * 1; // expiration time set to ten minutes from now
     $access_token = [
-      'access_token' => $stored_token['jwt'],
+      'access_token' => $this->generate_jti(),
       'token_type' => 'Bearer',
-      'user_id' => $encrypted_user_id,
-      'expires_in' => $exp
+      'expires_in' => $exp,
+      'user_id' => $encrypted_user_id
     ];
     $encoded_access_token = $this->encode_token_structure($access_token);
     $encrypted_access_token = $this->encrypt_token($encoded_access_token);
@@ -167,6 +169,12 @@ class JWTController
     }
 
     // store access token in database
+    $new_token = new JWTModel();
+
+    if (!$new_token->create($token_type, $stored_token['jti'], $encrypted_access_token, $stored_token['users_id']))
+    {
+      throw new \Exception("Token couldn't be stored in database.");
+    }
 
     return $encrypted_access_token;
   }
