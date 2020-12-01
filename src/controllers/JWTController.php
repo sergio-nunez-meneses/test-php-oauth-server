@@ -159,29 +159,15 @@ class JWTController
       'user_id' => $encrypted_user_id,
       'expires_in' => $exp
     ];
-    // $encode_access_token = $this->encode_token_structure($access_token);
-    // $encrypted_access_token = $this->encrypt_token($encode_access_token);
-    //
-    // if (empty($encrypted_access_token))
-    // {
-    //   throw new \Exception("User ID couldn't be encrypted.");
-    // }
-
-    // store access token in database
-
-    return json_encode($access_token);
-    // return $encrypted_access_token;
-  }
-
-  public function encrypt_access_token($access_token)
-  {
-    $encode_access_token = $this->encode_token_structure($access_token);
-    $encrypted_access_token = $this->encrypt_token($encode_access_token);
+    $encoded_access_token = $this->encode_token_structure($access_token);
+    $encrypted_access_token = $this->encrypt_token($encoded_access_token);
 
     if (empty($encrypted_access_token))
     {
-      throw new \Exception("User ID couldn't be encrypted.");
+      throw new \Exception("Access token couldn't be encrypted.");
     }
+
+    // store access token in database
 
     return $encrypted_access_token;
   }
@@ -229,7 +215,7 @@ class JWTController
     // if (isset($has_token) && !$has_token)
     // {
     //   $user_id = filter_var($user_id, FILTER_SANITIZE_STRING);
-    // 
+    //
     //   // find_by_user method not modified yet
     //   if (!$stored_token->find_by_user('access_token', $user_id))
     //   {

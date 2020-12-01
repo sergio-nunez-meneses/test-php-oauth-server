@@ -3,7 +3,7 @@
 class CurlController
 {
   // methods used for running user_requests_token.php test
-  public static function request_test($token, $url)
+  public static function request($token, $url)
   {
     $curl_opts = [
       CURLOPT_URL => $url,
@@ -59,12 +59,12 @@ class CurlController
       if ($token->verify($stored_token['jwt']))
       {
         // redirect user
-        $authorization_token = [
-          'authorization_token' => $stored_token['jwt'],
+        $authentication_token = [
+          'authentication_token' => $stored_token['jwt'],
           'redirect_uri' => 'http://ser.local/access_token'
         ];
 
-        echo json_encode($authorization_token);
+        echo json_encode($authentication_token);
         return;
       }
     }
@@ -78,12 +78,12 @@ class CurlController
     }
 
     // return an access token, not an authorization one
-    $authorization_token = [
-      'authorization_token' => $generated_token,
+    $authentication_token = [
+      'authentication_token' => $generated_token,
       'redirect_uri' => 'http://ser.local/access_token'
     ];
 
-    echo json_encode($authorization_token);
+    echo json_encode($authentication_token);
     return;
   }
 
