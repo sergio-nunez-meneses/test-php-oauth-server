@@ -49,7 +49,7 @@ class CurlController
     $token = new JWTController();
     $client_credentials = $token->get_token_from_header();
 
-    list($username, $password) = explode(':', base64_decode($client_credentials[1]));
+    list($username, $password) = explode(':', base64_decode($client_credentials));
     $user = UserController::check_credentials($username, $password);
 
     $stored_token = (new JWTModel)->find_by_user($user['id']);

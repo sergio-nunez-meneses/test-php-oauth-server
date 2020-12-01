@@ -2,6 +2,8 @@
 /*
 to run the test, copy and paste the folowing line in the terminal, and replace variables with your user information:
 php user_requests_token.php username password uri scope (optional)
+
+user credentials are entered, base64 encoded, and sent to the authorization server for authorization token request
 */
 
 require_once('../include/class_autoloader.php');
@@ -32,8 +34,7 @@ echo "\nRedirecting to http://services.local/service\n\n";
 // request refresh token
 $refresh_token = CurlController::request_test($access_token, 'http://ser.local/refresh_token');
 
-if (empty($refresh_token))
-{
+if (empty($refresh_token)) {
   echo "\n\nUnauthorized.\n";
 }
 
@@ -43,14 +44,12 @@ echo "\n\nYour token has been refreshed, you still have access to our services.\
 // logout and revoke token (since token has been replaced, this doesn't work)
 $logout = CurlController::request_test($access_token, 'http://ser.local/revoke_token');
 
-if ($logout)
-{
+if ($logout) {
   echo "\n\nUser logged out.\n\n";
 }
 
 echo "\n\nRequest ended at " . date('H:i:s') . "\n\n";
 
-// user credentials are entered, base64 encoded, and sent to the authorization server for authorization token request
 function get_token($username, $password, $uri, $scope = null) {
   // build header and body
   $token = base64_encode("$username:$password");

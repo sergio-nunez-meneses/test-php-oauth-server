@@ -21,8 +21,8 @@ class JWTController
 
     $private_key = $this->get_private_key();
     $signature = $this->create_signature($sign_input, $private_key, $algorithm);
-
     $token[] = $this->base64_encode_url($signature);
+
     $token = implode('.', $token);
     $encrypted_token = $this->encrypt_token($token);
 
@@ -36,7 +36,7 @@ class JWTController
 
     if (!$new_token->create($payload['jti'], $encrypted_token, $user_id))
     {
-      throw new \Exception('Failed to store token.');
+      throw new \Exception("Token couldn't be stored in database.");
     }
 
     return $encrypted_token;
@@ -48,7 +48,7 @@ class JWTController
 
     if (is_null($encrypted_token))
     {
-      $encrypted_token = $this->get_token_from_header()[1];
+      $encrypted_token = $this->get_token_from_header()['jwt'];
     }
 
     $token = $this->decrypt_token($encrypted_token);
@@ -86,7 +86,12 @@ class JWTController
     if ($decoded_payload['exp'] < time())
     {
       throw new \Exception('Token expired.');
-      // refresh token automatically ?
+      /*
+      if refresh_token request
+        refresh token
+      else
+        revoke token
+      */
     }
 
     $stored_token = new JWTModel();
@@ -128,12 +133,12 @@ class JWTController
   {
     // response format from https://tools.ietf.org/html/rfc6749#section-5.1
 
-    $encrypted_token = $this->get_token_from_header(); // $this->generate_jti();
-    $token_type = explode(' ', $encrypted_token[0]); // remove
+    $stored_token = $this->get_token_from_header()['jwt']; // $this->generate_jti();
+    // $token_type = explode(' ', $encrypted_token[0]); // remove
 
     $access_token = [
-      'access_token' => $encrypted_token[1], //
-      'token_type' => $token_type[0],
+      'access_token' => $stored_token, //
+      'token_type' => 'Bearer',
       'expires_in' => 3600,
       'scope' => $scope
     ];
@@ -152,14 +157,16 @@ class JWTController
     // $encrypted_token = $this->get_token_from_header();
     // if (!$this->verify($encrypted_token)) throw new \Exception('Invalid request.');
 
-    $encrypted_token = $this->get_token_from_header();
-    $jwt = filter_var($encrypted_token[1], FILTER_SANITIZE_STRING);
-    $token = new JWTModel();
-    $stored_token = $token->find_by_jwt($jwt);
+    // $encrypted_token = $this->get_token_from_header()[1];
+    // $jwt = filter_var($encrypted_token, FILTER_SANITIZE_STRING);
+    // $token = new JWTModel();
+    // $stored_token = $token->find_by_jwt($jwt);
+
+    $stored_token = $this->get_token_from_header();
 
     if (!$stored_token)
     {
-      throw new \Exception('Invalid token.');
+      throw new \Exception("Token wasn't found neither in header, nor in database.");
     }
 
     $new_token = $this->generate($stored_token['users_id']);
@@ -169,9 +176,9 @@ class JWTController
       throw new \Exception("Token couldn't be generated.");
     }
 
-    if (!$token->delete($stored_token['jti']))
+    if (!(new JWTModel)->delete($stored_token['jti']))
     {
-      throw new \Exception('Failed to revoke token.');
+      throw new \Exception("Token couldn't be revoked and deleted from database.");
     }
 
     return $new_token;
@@ -180,19 +187,21 @@ class JWTController
   public function revoke_token()
   {
     // optimize
-    $encrypted_token = $this->get_token_from_header();
-    $jwt = filter_var($encrypted_token[1], FILTER_SANITIZE_STRING);
-    $token = new JWTModel();
-    $stored_token = $token->find_by_jwt($jwt);
+    // $encrypted_token = $this->get_token_from_header()[1];
+    // $jwt = filter_var($encrypted_token, FILTER_SANITIZE_STRING);
+    // $token = new JWTModel();
+    // $stored_token = $token->find_by_jwt($jwt);
 
-    if (!$stored_token)
+    $stored_token = $this->get_token_from_header();
+
+    if (!$token)
     {
-      throw new \Exception('Invalid token.');
+      throw new \Exception("Token wasn't found neither in header, nor in database.");
     }
 
-    if (!$token->delete($stored_token['jti']))
+    if (!(new JWTModel)->delete($stored_token['jti']))
     {
-      throw new \Exception('Failed to revoke token.');
+      throw new \Exception("Token couldn't be revoked and deleted from database.");
     }
 
     return true;
@@ -202,7 +211,7 @@ class JWTController
   {
     // jose header format from https://tools.ietf.org/html/rfc7519#section-5
 
-    if ($algorithm !== 'HS256')
+    if (strtolower($algorithm) !== 'hs256')
     {
       throw new \Exception('Invalid or unsupported algorithm.');
     }
@@ -236,7 +245,7 @@ class JWTController
 
   private function create_signature($input, $key, $algorithm)
   {
-    if ($algorithm === 'HS256')
+    if (strtolower($algorithm) === 'hs256')
     {
       $algorithm = OPENSSL_ALGO_SHA256;
     }
@@ -247,7 +256,7 @@ class JWTController
 
     if (!openssl_sign($input, $signature, $key, $algorithm))
     {
-      throw new \Exception("Couldn't signed token.");
+      throw new \Exception("Token couldn't be signed.");
     }
 
     return $signature;
@@ -255,7 +264,7 @@ class JWTController
 
   private function verify_signature($signature, $input, $key, $algorithm)
   {
-    if ($algorithm === 'HS256')
+    if (strtolower($algorithm) === 'hs256')
     {
       $algorithm = OPENSSL_ALGO_SHA256;
     }
@@ -286,7 +295,7 @@ class JWTController
 
     if (!preg_match("/$token_type\s(\S+)/", $authorization_header, $matches))
     {
-      throw new \Exception('Token type not found.');
+      throw new \Exception("Token type wasn't found in header.");
     }
 
     if (strpos($matches[0], $token_type))
@@ -296,10 +305,25 @@ class JWTController
 
     if (!isset($matches[1]))
     {
-      throw new \Exception('Token not found.');
+      throw new \Exception("Token wasn't found in header.");
     }
 
-    return $matches;
+    if ($token_type === 'Basic')
+    {
+      return $matches[1];
+    }
+    elseif ($token_type === 'Bearer')
+    {
+      $jwt = filter_var($matches[1], FILTER_SANITIZE_STRING);
+      $stored_token = (new JWTModel)->find_by_jwt($jwt);
+
+      if (!$stored_token)
+      {
+        throw new \Exception("Token wasn't found in database.");
+      }
+
+      return $stored_token;
+    }
   }
 
   private function generate_jti($lenght = 40)
@@ -357,7 +381,7 @@ class JWTController
 
     if (!$res)
     {
-      throw new \Exception("Invalid private key.");
+      throw new \Exception('Invalid private key.');
     }
 
     $public_key = openssl_pkey_get_details($res);
