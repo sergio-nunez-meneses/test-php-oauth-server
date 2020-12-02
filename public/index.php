@@ -1,5 +1,5 @@
 <?php
-require_once('../include/class_autoloader.php');
+require '../include/class_autoloader.php';
 
 // handle cross origin resource sharing (CORS)
 header('Access-Control-Allow-Origin: *'); // allow all requests from all origins

@@ -1,5 +1,5 @@
 <?php
-require('../tools/sql.php');
+require '../tools/sql.php';
 
 abstract class DatabaseModel
 {

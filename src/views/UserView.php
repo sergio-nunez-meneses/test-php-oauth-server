@@ -31,6 +31,6 @@ class UserView
     </div>
     <?php
     $content = ob_get_clean();
-    require('../templates/template.php');
+    require '../templates/template.php' ;
   }
 }
