@@ -103,17 +103,18 @@ class JWTModel extends DatabaseModel
     return $res;
   }
 
-  public function find_by_jwt($jwt)
+  public function find_by_token($token_type, $token)
   {
-    $sql = "SELECT * FROM tokens WHERE jwt =:jwt";
-    $res = $this->run_query($sql, ['jwt' => $jwt])->fetch();
-    return $res;
-  }
+    if ($token_type === 'authentication')
+    {
+      $sql = "SELECT * FROM tokens WHERE jwt =:token";
+    }
+    elseif ($token_type === 'authorization')
+    {
+      $sql = "SELECT * FROM authorization_tokens WHERE at =:token";
+    }
 
-  public function find_by_access_token($authorization_token)
-  {
-    $sql = "SELECT * FROM authorization_tokens WHERE at =:authorization_token";
-    $res = $this->run_query($sql, ['authorization_token' => $authorization_token])->fetch();
+    $res = $this->run_query($sql, ['token' => $token])->fetch();
     return $res;
   }
 

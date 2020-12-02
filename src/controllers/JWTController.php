@@ -110,7 +110,7 @@ class JWTController
 
     $jwt = filter_var($encrypted_token, FILTER_SANITIZE_STRING);
 
-    if (!$stored_token->find_by_jwt($jwt))
+    if (!$stored_token->find_by_token($token_type, $jwt))
     {
       throw new \Exception('Invalid token.');
     }
@@ -199,7 +199,7 @@ class JWTController
     $stored_token = new JWTModel();
     $token = filter_var($encrypted_access_token, FILTER_SANITIZE_STRING);
 
-    if (!$stored_token->find_by_access_token($token))
+    if (!$stored_token->find_by_token($token_type, $token))
     {
       throw new \Exception('Invalid access token.');
     }
@@ -394,8 +394,9 @@ class JWTController
     elseif ($token_type === 'Bearer')
     {
       // if request === 'jwt_request'
+      $token_type = 'authentication';
       $jwt = filter_var($matches[1], FILTER_SANITIZE_STRING);
-      $stored_token = (new JWTModel)->find_by_jwt($jwt);
+      $stored_token = (new JWTModel)->find_by_token($token_type, $jwt);
 
       return $stored_token;
 
