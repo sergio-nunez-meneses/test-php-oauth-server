@@ -57,10 +57,15 @@ class JWTModel extends DatabaseModel
 
   public function delete($jti)
   {
-    // if (token_type === 'jwt') "DELETE FROM tokens"
-    // elseif (token_type === 'access_token') "DELETE FROM authorization_tokens"
+    if ($token_type === 'authentication')
+    {
+      $sql = "DELETE FROM tokens WHERE jti = :jti";
+    }
+    elseif ($token_type === 'authorization')
+    {
+      $sql = "DELETE FROM authorization_tokens WHERE jti = :jti";
+    }
 
-    $sql = "DELETE FROM tokens WHERE jti = :jti";
     $res = $this->run_query($sql, ['jti' => $jti])->rowCount();
 
     if ($res > 0)
@@ -69,9 +74,17 @@ class JWTModel extends DatabaseModel
     }
   }
 
-  public function find_by_jti($jti)
+  public function find_by_jti($token_type, $jti)
   {
-    $sql = "SELECT * FROM tokens WHERE jti =:jti";
+    if ($token_type === 'authentication')
+    {
+      $sql = "SELECT * FROM tokens WHERE jti =:jti";
+    }
+    elseif ($token_type === 'authorization')
+    {
+      $sql = "SELECT * FROM authorization_tokens WHERE jti =:jti";
+    }
+
     $res = $this->run_query($sql, ['jti' => $jti])->fetch();
     return $res;
   }
@@ -83,7 +96,6 @@ class JWTModel extends DatabaseModel
     return $res;
   }
 
-  // method not tested yet
   public function find_by_access_token($authorization_token)
   {
     $sql = "SELECT * FROM authorization_tokens WHERE at =:authorization_token";
@@ -91,9 +103,17 @@ class JWTModel extends DatabaseModel
     return $res;
   }
 
-  public function find_by_user($user_id)
+  public function find_by_user($token_type, $user_id)
   {
-    $sql = "SELECT * FROM tokens WHERE users_id =:user_id ORDER BY created_at DESC LIMIT 1";
+    if ($token_type === 'authentication')
+    {
+      $sql = "SELECT * FROM tokens WHERE users_id =:user_id ORDER BY created_at DESC LIMIT 1";
+    }
+    elseif ($token_type === 'authorization')
+    {
+      $sql = "SELECT * FROM authorization_tokens WHERE users_id =:user_id ORDER BY created_at DESC LIMIT 1";
+    }
+
     $res = $this->run_query($sql, ['user_id' => $user_id])->fetch();
     return $res;
   }

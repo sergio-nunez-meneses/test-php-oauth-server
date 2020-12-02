@@ -2,7 +2,7 @@
 // to run the test, copy and paste the folowing line in the terminal, and replace variable with an user id:
 // php generate_and_verify_jwt.php user_id
 
-require_once('../include/class_autoloader.php');
+require '../include/class_autoloader.php';
 
 $token = new JWTController();
 $new_token = $token->generate($argv[1]);

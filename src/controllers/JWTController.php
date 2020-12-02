@@ -1,5 +1,5 @@
 <?php
-require_once('../tools/constants.php');
+require '../tools/constants.php';
 
 class JWTController
 {
@@ -46,6 +46,8 @@ class JWTController
   public function verify($encrypted_token = null)
   {
     // jwt validation from https://tools.ietf.org/html/rfc7519#section-7.2 , plus public key decryption
+
+    $token_type = 'authentication';
 
     if (is_null($encrypted_token))
     {
@@ -99,7 +101,7 @@ class JWTController
     $stored_token = new JWTModel();
     $jti = filter_var($decoded_payload['jti'], FILTER_SANITIZE_STRING);
 
-    if (!$stored_token->find_by_jti($jti))
+    if (!$stored_token->find_by_jti($token_type, $jti))
     {
       throw new \Exception('Invalid token ID.');
     }
@@ -115,7 +117,7 @@ class JWTController
     {
       $user_id = filter_var($decoded_payload['id_user'], FILTER_SANITIZE_STRING);
 
-      if (!$stored_token->find_by_user($user_id))
+      if (!$stored_token->find_by_user($token_type, $user_id))
       {
         throw new \Exception('Invalid user ID.');
       }
@@ -181,12 +183,14 @@ class JWTController
 
   public function verify_access_token($encrypted_access_token = null)
   {
-    // if (is_null($encrypted_access_token))
-    // {
-    //   $encrypted_access_token = $this->get_token_from_header();
-    //   $has_token = false;
-    // }
+    // condition not working
+    if (is_null($encrypted_access_token))
+    {
+      $encrypted_access_token = $this->get_token_from_header();
+      $has_token = false;
+    }
 
+    $token_type = 'authorization';
     $decrypted_access_token = $this->decrypt_token($encrypted_access_token);
     $access_token = $this->decode_token_structure($decrypted_access_token);
 
@@ -197,7 +201,7 @@ class JWTController
 
     if (empty($access_token['access_token']))
     {
-      throw new \Exception("Access token wasn't neither in header nor in database.");
+      throw new \Exception("Access token wasn't found neither in header nor in database.");
     }
 
     if ($access_token['expires_in'] < time())
@@ -206,28 +210,28 @@ class JWTController
       // revoke access token
     }
 
-    // $stored_token = new JWTModel();
-    // $token = filter_var($access_token['access_token'], FILTER_SANITIZE_STRING);
-    //
-    // if (!$stored_token->find_by_access_token($token))
-    // {
-    //   throw new \Exception('Invalid access token.');
-    // }
+    $stored_token = new JWTModel();
+    $token = filter_var($encrypted_access_token, FILTER_SANITIZE_STRING);
+
+    if (!$stored_token->find_by_access_token($token))
+    {
+      throw new \Exception('Invalid access token.');
+    }
 
     $decrypted_user_id = $this->decrypt_token($access_token['user_id']);
-    $user_id = substr($decrypted_user_id, -1);
-    $access_token['user_id'] = $user_id;
+    $get_user_id = substr($decrypted_user_id, -1);
+    $user_id = filter_var($get_user_id, FILTER_SANITIZE_STRING);
 
-    // if (isset($has_token) && !$has_token)
-    // {
-    //   $user_id = filter_var($user_id, FILTER_SANITIZE_STRING);
-    //
-    //   // find_by_user method not modified yet
-    //   if (!$stored_token->find_by_user('access_token', $user_id))
-    //   {
-    //     throw new \Exception('Invalid user ID.');
-    //   }
-    // }
+
+    if (isset($has_token) && !$has_token)
+    {
+      if (!$stored_token->find_by_user($token_type, $user_id))
+      {
+        throw new \Exception('Invalid user ID.');
+      }
+    }
+
+    $access_token['user_id'] = $user_id;
 
     return $access_token;
   }

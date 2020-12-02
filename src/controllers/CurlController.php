@@ -103,13 +103,14 @@ class CurlController
   // change function name
   public static function token_request()
   {
+    $token_type = 'authentication';
     $token = new JWTController();
     $client_credentials = $token->get_token_from_header();
 
     list($username, $password) = explode(':', base64_decode($client_credentials));
     $user = UserController::check_credentials($username, $password);
 
-    $stored_token = (new JWTModel)->find_by_user($user['id']);
+    $stored_token = (new JWTModel)->find_by_user($token_type, $user['id']);
 
     if ($stored_token)
     {
@@ -140,6 +141,15 @@ class CurlController
 
   public static function access_token_request()
   {
+    $token_type = 'authorization';
+    $authentication_token = (new JWTController)->get_token_from_header();
+    $stored_authorization_token = (new JWTModel)->find_by_jti($token_type, $authentication_token['jti']);
+
+    if ($stored_authorization_token)
+    {
+      return;
+    }
+
     echo (new JWTController)->generate_access_token();
   }
 

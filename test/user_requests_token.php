@@ -23,10 +23,10 @@ $authentication_token = $token['authentication_token'];
 
 echo "\n\nYour token has been generated:\n\n";
 echo "$authentication_token\n\n";
-echo (new JWTModel)->find_by_jwt($authentication_token)['jti'] . "\n\n";
 
 // service: request authorization token and authorize user
 $encrypted_authorization_token = CurlController::request($authentication_token, ISSUER . '/access_token');
+var_dump($encrypted_authorization_token);
 
 if (empty($encrypted_authorization_token)) {
   exit("\n\nCouldn't find authorization token.\n");
@@ -40,25 +40,25 @@ if (empty($authorization_token)) {
 
 $user = (new UserModel)->find_by_id($authorization_token['user_id']);
 
-echo "\n\nYour authentication token has been validated, you can now access our services.\n\n";
-echo "Welcome, " . ucfirst($user['username']) . "\n\n";
+echo "\n\nWelcome, " . ucfirst($user['username']) . "\n\n";
+echo "Your authentication token has been validated, you can now access our services.\n\n";
 echo "Redirecting to http://services.local/service\n\n";
 
 // service: request refresh token
-$refresh_token = CurlController::request($authentication_token, ISSUER . '/refresh_token');
-
-if (empty($refresh_token)) {
-  exit("\n\nCouldn't refresh token.\n\n");
-}
-
-echo "\n\nYour token has been refreshed, you still have access to our services:\n\n";
-echo "$refresh_token\n\n";
+// $refresh_token = CurlController::request($authentication_token, ISSUER . '/refresh_token');
+//
+// if (empty($refresh_token)) {
+//   exit("\n\nCouldn't refresh token.\n\n");
+// }
+//
+// echo "\n\nYour token has been refreshed, you still have access to our services:\n\n";
+// echo "$refresh_token\n\n";
 
 // client: logout and revoke authentication token (since authentication token has been replaced in databse, this doesn't work)
 // $logout = CurlController::request($authentication_token, 'http://ser.local/revoke_token');
-
-if ($logout) {
-  echo "\n\nUser logged out.\n\n";
-}
+//
+// if ($logout) {
+//   echo "\n\nUser logged out.\n\n";
+// }
 
 echo "\n\nRequest ended at " . date('H:i:s') . "\n\n";
