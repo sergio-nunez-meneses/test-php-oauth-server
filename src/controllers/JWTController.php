@@ -10,6 +10,7 @@ class JWTController
     // jwt creation from https://tools.ietf.org/html/rfc7519#section-7.1 , plus private key encryption
 
     $token_type = 'authentication';
+    
     $user_id = filter_var($user_id, FILTER_SANITIZE_STRING);
 
     $headers = $this->create_header($algorithm);
@@ -139,6 +140,8 @@ class JWTController
   {
     // response format from https://tools.ietf.org/html/rfc6749#section-5.1
 
+    $token_type = 'authorization';
+
     $stored_token = $this->get_token_from_header(); // $this->generate_jti();
 
     if (!$stored_token)
@@ -154,7 +157,7 @@ class JWTController
       throw new \Exception("User ID couldn't be encrypted.");
     }
 
-    $token_type = 'authorization';
+    // create_access_token
     $exp = time() + 10 * 60 * 1 * 1; // expiration time set to ten minutes from now
     $access_token = [
       'access_token' => $this->generate_jti(),
@@ -162,6 +165,8 @@ class JWTController
       'expires_in' => $exp,
       'user_id' => $encrypted_user_id
     ];
+
+    // encode and ecrypt
     $encoded_access_token = $this->encode_token_structure($access_token);
     $encrypted_access_token = $this->encrypt_token($encoded_access_token);
 
@@ -183,14 +188,15 @@ class JWTController
 
   public function verify_access_token($encrypted_access_token = null)
   {
-    // condition not working
+    $token_type = 'authorization';
+
+    // condition not working yet
     if (is_null($encrypted_access_token))
     {
       $encrypted_access_token = $this->get_token_from_header();
       $has_token = false;
     }
 
-    $token_type = 'authorization';
     $decrypted_access_token = $this->decrypt_token($encrypted_access_token);
     $access_token = $this->decode_token_structure($decrypted_access_token);
 

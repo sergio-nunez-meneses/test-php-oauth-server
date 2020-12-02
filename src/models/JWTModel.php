@@ -3,6 +3,20 @@
 class JWTModel extends DatabaseModel
 {
 
+  public function table_name($token_type)
+  {
+    if ($token_type === 'authentication')
+    {
+      $table = 'tokens';
+    }
+    elseif ($token_type === 'authorization')
+    {
+      $table = 'authorization_tokens';
+    }
+
+    return $table;
+  }
+
   public function create($token_type, $jti, $token, $user_id)
   {
     if ($token_type === 'authentication')

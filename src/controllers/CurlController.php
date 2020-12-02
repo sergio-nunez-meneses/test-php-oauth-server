@@ -104,6 +104,7 @@ class CurlController
   public static function token_request()
   {
     $token_type = 'authentication';
+
     $token = new JWTController();
     $client_credentials = $token->get_token_from_header();
 
@@ -116,7 +117,6 @@ class CurlController
     {
       if ($token->verify($stored_token['jwt']))
       {
-        // redirect user
         $authentication_token = ['authentication_token' => $stored_token['jwt']];
 
         echo json_encode($authentication_token);
@@ -132,7 +132,6 @@ class CurlController
       return;
     }
 
-    // return an access token, not an authorization one
     $authentication_token = ['authentication_token' => $generated_token];
 
     echo json_encode($authentication_token);
@@ -142,15 +141,28 @@ class CurlController
   public static function access_token_request()
   {
     $token_type = 'authorization';
-    $authentication_token = (new JWTController)->get_token_from_header();
+
+    $token = new JWTController();
+    $authentication_token = $token->get_token_from_header();
+
     $stored_authorization_token = (new JWTModel)->find_by_jti($token_type, $authentication_token['jti']);
 
     if ($stored_authorization_token)
     {
+      echo $stored_authorization_token['at'];
       return;
     }
 
-    echo (new JWTController)->generate_access_token();
+    $generated_token = $token->generate_access_token();
+
+    if (empty($generated_token))
+    {
+      echo "\nToken couldn't be generated.";
+      return;
+    }
+
+    echo $generated_token;
+    return;
   }
 
   public static function refresh_token_request()
