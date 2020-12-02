@@ -10,7 +10,7 @@ class JWTController
     // jwt creation from https://tools.ietf.org/html/rfc7519#section-7.1 , plus private key encryption
 
     $token_type = 'authentication';
-    
+
     $user_id = filter_var($user_id, FILTER_SANITIZE_STRING);
 
     $headers = $this->create_header($algorithm);
@@ -96,6 +96,7 @@ class JWTController
         refresh token
       else
         revoke token
+        to blacklist
       */
     }
 
@@ -136,37 +137,13 @@ class JWTController
     return true;
   }
 
-  public function generate_access_token()
+  public function generate_access_token($jti, $user_id)
   {
     // response format from https://tools.ietf.org/html/rfc6749#section-5.1
 
     $token_type = 'authorization';
 
-    $stored_token = $this->get_token_from_header(); // $this->generate_jti();
-
-    if (!$stored_token)
-    {
-      throw new \Exception("Token wasn't found neither in header, nor in database.");
-    }
-
-    $user_id = 'agent_' . $this->generate_jti() . $stored_token['users_id'];
-    $encrypted_user_id = $this->encrypt_token($user_id);
-
-    if (empty($encrypted_user_id))
-    {
-      throw new \Exception("User ID couldn't be encrypted.");
-    }
-
-    // create_access_token
-    $exp = time() + 10 * 60 * 1 * 1; // expiration time set to ten minutes from now
-    $access_token = [
-      'access_token' => $this->generate_jti(),
-      'token_type' => 'Bearer',
-      'expires_in' => $exp,
-      'user_id' => $encrypted_user_id
-    ];
-
-    // encode and ecrypt
+    $access_token = $this->create_access_token($user_id);
     $encoded_access_token = $this->encode_token_structure($access_token);
     $encrypted_access_token = $this->encrypt_token($encoded_access_token);
 
@@ -178,7 +155,7 @@ class JWTController
     // store access token in database
     $new_token = new JWTModel();
 
-    if (!$new_token->create($token_type, $stored_token['jti'], $encrypted_access_token, $stored_token['users_id']))
+    if (!$new_token->create($token_type, $jti, $encrypted_access_token, $user_id))
     {
       throw new \Exception("Token couldn't be stored in database.");
     }
@@ -213,7 +190,10 @@ class JWTController
     if ($access_token['expires_in'] < time())
     {
       throw new \Exception('Access token expired.');
-      // revoke access token
+      /*
+      revoke token
+      to blacklist
+      */
     }
 
     $stored_token = new JWTModel();
@@ -281,6 +261,29 @@ class JWTController
     }
 
     return true;
+  }
+
+  private function create_access_token($user_id)
+  {
+    // response format from https://tools.ietf.org/html/rfc6749#section-5.1
+
+    $user_id = 'agent_' . $this->generate_jti() . $user_id;
+    $encrypted_user_id = $this->encrypt_token($user_id);
+
+    if (empty($encrypted_user_id))
+    {
+      throw new \Exception("User ID couldn't be encrypted.");
+    }
+
+    $exp = time() + 10 * 60 * 1 * 1; // expiration time set to ten minutes from now
+    $access_token = [
+      'access_token' => $this->generate_jti(), // sign ?
+      'token_type' => 'Bearer',
+      'expires_in' => $exp,
+      'user_id' => $encrypted_user_id
+    ];
+
+    return $access_token;
   }
 
   private function create_header($algorithm)

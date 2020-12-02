@@ -149,11 +149,14 @@ class CurlController
 
     if ($stored_authorization_token)
     {
-      echo $stored_authorization_token['at'];
-      return;
+      if ($token->verify_access_token($stored_authorization_token['at']))
+      {
+        echo $stored_authorization_token['at'];
+        return;
+      }
     }
 
-    $generated_token = $token->generate_access_token();
+    $generated_token = $token->generate_access_token($authentication_token['jti'], $authentication_token['users_id']);
 
     if (empty($generated_token))
     {
