@@ -88,6 +88,35 @@ class JWTModel extends DatabaseModel
     }
   }
 
+  // method not tested yet
+  public function add_to_blacklist($jti, $jwt, $at)
+  {
+    $sql = "INSERT INTO tokens_blacklist (jti, jwt, at) VALUES (:jti, :jwt, :at)";
+    $placeholders = [
+      'jti' => $jti,
+      'jwt' => $jwt,
+      'at' => $at
+    ];
+    $res = $this->run_query($sql, $placeholders)->rowCount();
+
+    if ($res > 0)
+    {
+      return true;
+    }
+  }
+
+  // method not tested yet
+  public function remove_from_blacklist($jti)
+  {
+    $sql = "DELETE FROM tokens_blacklist WHERE jti = :jti";
+    $res = $this->run_query($sql, ['jti' => $jti])->rowCount();
+
+    if ($res > 0)
+    {
+      return true;
+    }
+  }
+
   public function find_by_jti($token_type, $jti)
   {
     if ($token_type === 'authentication')
