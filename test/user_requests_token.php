@@ -26,6 +26,7 @@ echo "$authentication_token\n\n";
 
 // service: request authorization token and authorize user
 $encrypted_authorization_token = CurlController::request($authentication_token, ISSUER . '/access_token');
+var_dump($encrypted_authorization_token); // bug tracker
 
 if (empty($encrypted_authorization_token)) {
   exit("\n\nCouldn't find authorization token.\n");

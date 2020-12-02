@@ -69,7 +69,7 @@ class JWTModel extends DatabaseModel
     }
   }
 
-  public function delete($jti)
+  public function delete($token_type, $jti)
   {
     if ($token_type === 'authentication')
     {

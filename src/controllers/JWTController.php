@@ -166,6 +166,7 @@ class JWTController
   public function verify_access_token($encrypted_access_token = null)
   {
     $token_type = 'authorization';
+    $now = date('Y-m-d H:i:s');
 
     // condition not working yet
     if (is_null($encrypted_access_token))
@@ -187,21 +188,28 @@ class JWTController
       throw new \Exception("Access token wasn't found neither in header nor in database.");
     }
 
-    if ($access_token['expires_in'] < time())
-    {
-      throw new \Exception('Access token expired.');
-      /*
-      revoke token
-      to blacklist
-      */
-    }
-
-    $stored_token = new JWTModel();
+    $token_model = new JWTModel();
     $token = filter_var($encrypted_access_token, FILTER_SANITIZE_STRING);
+    $stored_token = $token_model->find_by_token($token_type, $token);
 
-    if (!$stored_token->find_by_token($token_type, $token))
+    if (!$stored_token)
     {
       throw new \Exception('Invalid access token.');
+    }
+
+    if ($access_token['expires_in'] < time() || $stored_token['expires_at'] < $now)
+    {
+      if (!$token_model->add_to_blacklist($stored_token['jti'], 'azeqsdwxc', $stored_token['at']))
+      {
+        throw new \Exception("Access token couldn't be added to blacklist.");
+      }
+
+      if (!$token_model->delete($token_type, $stored_token['jti']))
+      {
+        throw new \Exception("Access token couldn't be revoked and deleted from database.");
+      }
+
+      throw new \Exception('Access token expired.');
     }
 
     $decrypted_user_id = $this->decrypt_token($access_token['user_id']);
@@ -211,7 +219,7 @@ class JWTController
 
     if (isset($has_token) && !$has_token)
     {
-      if (!$stored_token->find_by_user($token_type, $user_id))
+      if (!$token_model->find_by_user($token_type, $user_id))
       {
         throw new \Exception('Invalid user ID.');
       }
@@ -275,7 +283,7 @@ class JWTController
       throw new \Exception("User ID couldn't be encrypted.");
     }
 
-    $exp = time() + 10 * 60 * 1 * 1; // expiration time set to ten minutes from now
+    $exp = time() + 2 * 60 * 1 * 1; // expiration time set to ten minutes from now
     $access_token = [
       'access_token' => $this->generate_jti(), // sign ?
       'token_type' => 'Bearer',
