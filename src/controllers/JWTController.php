@@ -44,11 +44,12 @@ class JWTController
     return $encrypted_token;
   }
 
-  public function verify($encrypted_token = null)
+  public function verify($encrypted_token = null, $uri = null)
   {
     // jwt validation from https://tools.ietf.org/html/rfc7519#section-7.2 , plus public key decryption
 
     $token_type = 'authentication';
+    $now = date('Y-m-d H:i:s');
 
     if (is_null($encrypted_token))
     {
@@ -83,34 +84,23 @@ class JWTController
       throw new \Exception("Token doesn't contain expected issuer.");
     }
 
-    if ($decoded_payload['iat'] > time())
-    {
-      throw new \Exception('Token was issued in the future (well played Jonas Kahnwald).');
-    }
-
-    if ($decoded_payload['exp'] < time())
-    {
-      throw new \Exception('Token expired.');
-      /*
-      if refresh_token request
-        refresh token
-      else
-        revoke token
-        to blacklist
-      */
-    }
-
-    $stored_token = new JWTModel();
+    $token_model = new JWTModel();
     $jti = filter_var($decoded_payload['jti'], FILTER_SANITIZE_STRING);
+    $stored_token = $token_model->find_by_jti($token_type, $jti);
 
-    if (!$stored_token->find_by_jti($token_type, $jti))
+    if (!$stored_token)
     {
       throw new \Exception('Invalid token ID.');
     }
 
+    if ($token_model->find_by_jti('blacklist', $jti))
+    {
+      throw new \Exception('Token was found in the blacklist.');
+    }
+
     $jwt = filter_var($encrypted_token, FILTER_SANITIZE_STRING);
 
-    if (!$stored_token->find_by_token($token_type, $jwt))
+    if (!$token_model->find_by_token($token_type, $jwt))
     {
       throw new \Exception('Invalid token.');
     }
@@ -119,10 +109,40 @@ class JWTController
     {
       $user_id = filter_var($decoded_payload['id_user'], FILTER_SANITIZE_STRING);
 
-      if (!$stored_token->find_by_user($token_type, $user_id))
+      if (!$token_model->find_by_user($token_type, $user_id))
       {
         throw new \Exception('Invalid user ID.');
       }
+    }
+
+    // this condition is not working: $stored_token['created_at'] > $now
+    if ($decoded_payload['iat'] > time())
+    {
+      throw new \Exception('Token was issued in the future.');
+    }
+
+    if ($decoded_payload['exp'] < time() || $stored_token['expires_at'] < $now)
+    {
+      if ($uri === 'refresh_token')
+      {
+        if (!$this->refresh_token())
+        {
+          throw new \Exception("Token couldn't be refreshed.");
+        }
+      }
+
+      if (!$token_model->add_to_blacklist($stored_token['jti'], $stored_token['jwt'], 'azeqsdwxc'))
+      {
+        throw new \Exception("Token couldn't be added to blacklist.");
+      }
+
+      if (!$token_model->delete($token_type, $stored_token['jti']))
+      {
+        throw new \Exception("Token couldn't be revoked and deleted from database.");
+      }
+
+      // after deleting the token, no request works
+      throw new \Exception('Token expired.');
     }
 
     $private_key = $this->get_private_key();
@@ -195,6 +215,11 @@ class JWTController
     if (!$stored_token)
     {
       throw new \Exception('Invalid access token.');
+    }
+
+    if ($token_model->find_by_jti('blacklist', $stored_token['jti']))
+    {
+      throw new \Exception('Access token was found in the blacklist.');
     }
 
     if ($access_token['expires_in'] < time() || $stored_token['expires_at'] < $now)
@@ -315,7 +340,7 @@ class JWTController
 
     $jti = $this->generate_jti();
     $iat = time();
-    $exp = $iat + 60 * 60 * 1 * 1; // expiration time set to an hour from now
+    $exp = $iat + 2 * 60 * 1 * 1; // expiration time set to an hour from now
     $payload = [
       'jti' => $jti,
       'id_user' => $user_id,
@@ -402,6 +427,7 @@ class JWTController
     elseif ($token_type === 'Bearer')
     {
       // if request === 'jwt_request'
+
       $token_type = 'authentication';
       $jwt = filter_var($matches[1], FILTER_SANITIZE_STRING);
       $stored_token = (new JWTModel)->find_by_token($token_type, $jwt);
