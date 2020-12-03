@@ -13,14 +13,12 @@ date_default_timezone_set('Europe/Paris');
 echo "\n\nRequest started at " . date('H:i:s') . "\n";
 
 // client: login and request authentication token
-$token = CurlController::get_token($argv[1], $argv[2], $argv[3]);
-var_dump($token); // bug tracker
+$authentication_token = CurlController::get_token($argv[1], $argv[2], $argv[3]);
+var_dump($authentication_token); // bug tracker
 
-if (empty($token)) {
+if (empty($authentication_token)) {
   exit("\n\nCouldn't generate token.\n\n");
 }
-
-$authentication_token = $token['authentication_token'];
 
 echo "\n\nYour token has been generated:\n\n";
 echo "$authentication_token\n\n";

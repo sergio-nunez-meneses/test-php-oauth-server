@@ -2,11 +2,11 @@
 
 class CurlController
 {
+
   // methods used for running user_requests_token.php test
   public static function request($token, $url)
   {
     $curl_opts = [
-      CURLOPT_URL => $url,
       CURLOPT_HTTPHEADER => [
         'Content-Type: application/json',
         "Authorization: Bearer $token"
@@ -15,36 +15,12 @@ class CurlController
       CURLOPT_VERBOSE => TRUE
     ];
 
-    try
-    {
-      $ch = curl_init();
-
-      if ($ch === false)
-      {
-        throw new \Exception('Failed to initialize request.');
-      }
-
-      curl_setopt_array($ch, $curl_opts);
-      $response = curl_exec($ch);
-
-      if ($response === false)
-      {
-        throw new Exception(curl_error($ch), curl_errno($ch));
-      }
-
-      curl_close($ch);
-      return $response;
-    }
-    catch (\Exception $e)
-    {
-      trigger_error(
-        sprintf('Curl failed with error #%d: %s', $e->getCode(), $e->getMessage()),
-      E_USER_ERROR);
-    }
+    // perform request
+    return CurlController::execute_request($curl_opts, $url);
   }
 
   // optimize
-  public static function get_token($username, $password, $uri, $scope = null)
+  public static function get_token($username, $password, $url, $scope = null)
   {
     // build header and body
     $token = base64_encode("$username:$password");
@@ -52,6 +28,7 @@ class CurlController
       'grant_type' => 'client_credentials',
       'scope' => $scope // optional ?
     ]);
+
     $curl_opts = [
       CURLOPT_HTTPHEADER => [
         'Content-Type: application/x-www-form-urlencoded',
@@ -65,9 +42,14 @@ class CurlController
     ];
 
     // perform request
+    return CurlController::execute_request($curl_opts, $url);
+  }
+
+  private static function execute_request($curl_opts, $url)
+  {
     try
     {
-      $ch = curl_init($uri);
+      $ch = curl_init($url);
 
       if ($ch === false)
       {
@@ -82,13 +64,6 @@ class CurlController
         throw new Exception(curl_error($ch), curl_errno($ch));
       }
 
-      $response = json_decode($response, true);
-
-      if (!isset($response['authentication_token']))
-      {
-        throw new Exception('Failed, exiting.');
-      }
-
       curl_close($ch);
       return $response;
     }
@@ -100,7 +75,7 @@ class CurlController
     }
   }
 
-  // change function name
+  // return authentication token
   public static function token_request()
   {
     $token = new JWTController();
@@ -115,14 +90,13 @@ class CurlController
     {
       if ($token->verify($stored_token['token']))
       {
-        $authentication_token = ['authentication_token' => $stored_token['token']];
-
-        echo json_encode($authentication_token);
+        echo $stored_token['token'];
         return;
       }
       else
       {
-        echo json_encode(['authentication_token' => 'Token revoked.']);
+        $error_msg = 'Token revoked.';
+        echo $error_msg;
         return;
       }
     }
@@ -135,12 +109,11 @@ class CurlController
       return;
     }
 
-    $authentication_token = ['authentication_token' => $generated_token];
-
-    echo json_encode($authentication_token);
+    echo $generated_token;
     return;
   }
 
+  // return authorization token
   public static function access_token_request()
   {
     $token = new JWTController();
