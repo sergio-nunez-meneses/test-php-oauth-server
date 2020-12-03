@@ -59,7 +59,7 @@ CREATE INDEX `fk_tokens_users_idx` ON `aa_server`.`authentication_tokens` (`user
 DROP TABLE IF EXISTS `aa_server`.`tokens_blacklist` ;
 
 CREATE TABLE IF NOT EXISTS `aa_server`.`tokens_blacklist` (
-  `id` INT NOT NULL,
+  `id` INT NOT NULL AUTO_INCREMENT,
   `jti` VARCHAR(80) NOT NULL,
   `token` MEDIUMTEXT NOT NULL,
   `token_type` VARCHAR(20) NOT NULL,
@@ -81,7 +81,7 @@ CREATE INDEX `fk_tokens_blacklist_users_idx` ON `aa_server`.`tokens_blacklist` (
 DROP TABLE IF EXISTS `aa_server`.`authorization_tokens` ;
 
 CREATE TABLE IF NOT EXISTS `aa_server`.`authorization_tokens` (
-  `jti` VARCHAR(80) NOT NULL AUTO_INCREMENT,
+  `jti` VARCHAR(80) NOT NULL,
   `token` MEDIUMTEXT NOT NULL,
   `created_at` DATETIME NOT NULL,
   `expires_at` DATETIME NOT NULL,
