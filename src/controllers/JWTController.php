@@ -9,8 +9,6 @@ class JWTController
   {
     // jwt creation from https://tools.ietf.org/html/rfc7519#section-7.1 , plus private key encryption
 
-    $token_type = 'authentication';
-
     $user_id = filter_var($user_id, FILTER_SANITIZE_STRING);
 
     $headers = $this->create_header($algorithm);
@@ -36,7 +34,7 @@ class JWTController
     // store jwt in database
     $new_token = new JWTModel();
 
-    if (!$new_token->create($token_type, $payload['jti'], $encrypted_token, $user_id))
+    if (!$new_token->create('authentication', $payload['jti'], $encrypted_token, $user_id))
     {
       throw new \Exception("Token couldn't be stored in database.");
     }
@@ -48,12 +46,9 @@ class JWTController
   {
     // jwt validation from https://tools.ietf.org/html/rfc7519#section-7.2 , plus public key decryption
 
-    $token_type = 'authentication';
-    $now = date('Y-m-d H:i:s');
-
     if (is_null($encrypted_token))
     {
-      $encrypted_token = $this->get_token_from_header()['jwt'];
+      $encrypted_token = $this->get_token_from_header()['token'];
       $has_token = false;
     }
 
@@ -84,6 +79,7 @@ class JWTController
       throw new \Exception("Token doesn't contain expected issuer.");
     }
 
+    $token_type = 'authentication';
     $token_model = new JWTModel();
     $jti = filter_var($decoded_payload['jti'], FILTER_SANITIZE_STRING);
     $stored_token = $token_model->find_by_jti($token_type, $jti);
@@ -93,12 +89,12 @@ class JWTController
       throw new \Exception('Invalid token ID.');
     }
 
-    if ($token_model->find_by_jti('blacklist', $jti))
+    $jwt = filter_var($encrypted_token, FILTER_SANITIZE_STRING);
+
+    if ($token_model->find_by_token('blacklist', $jwt))
     {
       throw new \Exception('Token was found in the blacklist.');
     }
-
-    $jwt = filter_var($encrypted_token, FILTER_SANITIZE_STRING);
 
     if (!$token_model->find_by_token($token_type, $jwt))
     {
@@ -114,6 +110,8 @@ class JWTController
         throw new \Exception('Invalid user ID.');
       }
     }
+
+    $now = date('Y-m-d H:i:s');
 
     // this condition is not working: $stored_token['created_at'] > $now
     if ($decoded_payload['iat'] > time())
@@ -131,7 +129,7 @@ class JWTController
         }
       }
 
-      if (!$token_model->add_to_blacklist($stored_token['jti'], $stored_token['jwt'], 'azeqsdwxc'))
+      if (!$token_model->add_to_blacklist($stored_token['jti'], $stored_token['token'], $token_type, $stored_token['users_id']))
       {
         throw new \Exception("Token couldn't be added to blacklist.");
       }
@@ -161,8 +159,6 @@ class JWTController
   {
     // response format from https://tools.ietf.org/html/rfc6749#section-5.1
 
-    $token_type = 'authorization';
-
     $access_token = $this->create_access_token($user_id);
     $encoded_access_token = $this->encode_token_structure($access_token);
     $encrypted_access_token = $this->encrypt_token($encoded_access_token);
@@ -175,7 +171,7 @@ class JWTController
     // store access token in database
     $new_token = new JWTModel();
 
-    if (!$new_token->create($token_type, $jti, $encrypted_access_token, $user_id))
+    if (!$new_token->create('authorization', $jti, $encrypted_access_token, $user_id))
     {
       throw new \Exception("Token couldn't be stored in database.");
     }
@@ -185,9 +181,6 @@ class JWTController
 
   public function verify_access_token($encrypted_access_token = null)
   {
-    $token_type = 'authorization';
-    $now = date('Y-m-d H:i:s');
-
     // condition not working yet
     if (is_null($encrypted_access_token))
     {
@@ -208,6 +201,7 @@ class JWTController
       throw new \Exception("Access token wasn't found neither in header nor in database.");
     }
 
+    $token_type = 'authorization';
     $token_model = new JWTModel();
     $token = filter_var($encrypted_access_token, FILTER_SANITIZE_STRING);
     $stored_token = $token_model->find_by_token($token_type, $token);
@@ -217,14 +211,16 @@ class JWTController
       throw new \Exception('Invalid access token.');
     }
 
-    if ($token_model->find_by_jti('blacklist', $stored_token['jti']))
+    if ($token_model->find_by_token('blacklist', $stored_token['token']))
     {
       throw new \Exception('Access token was found in the blacklist.');
     }
 
+    $now = date('Y-m-d H:i:s');
+
     if ($access_token['expires_in'] < time() || $stored_token['expires_at'] < $now)
     {
-      if (!$token_model->add_to_blacklist($stored_token['jti'], 'azeqsdwxc', $stored_token['at']))
+      if (!$token_model->add_to_blacklist($stored_token['jti'], $stored_token['token'], $token_type, $stored_token['users_id']))
       {
         throw new \Exception("Access token couldn't be added to blacklist.");
       }
@@ -271,7 +267,7 @@ class JWTController
       throw new \Exception("Token couldn't be generated.");
     }
 
-    if (!(new JWTModel)->delete($stored_token['jti']))
+    if (!(new JWTModel)->delete('authentication', $stored_token['jti']))
     {
       throw new \Exception("Token couldn't be revoked and deleted from database.");
     }
@@ -288,7 +284,7 @@ class JWTController
       throw new \Exception("Token wasn't found neither in header, nor in database.");
     }
 
-    if (!(new JWTModel)->delete($stored_token['jti']))
+    if (!(new JWTModel)->delete('authentication', $stored_token['jti']))
     {
       throw new \Exception("Token couldn't be revoked and deleted from database.");
     }
@@ -340,7 +336,7 @@ class JWTController
 
     $jti = $this->generate_jti();
     $iat = time();
-    $exp = $iat + 2 * 60 * 1 * 1; // expiration time set to an hour from now
+    $exp = $iat + 3 * 60 * 1 * 1; // expiration time set to an hour from now
     $payload = [
       'jti' => $jti,
       'id_user' => $user_id,
@@ -428,9 +424,8 @@ class JWTController
     {
       // if request === 'jwt_request'
 
-      $token_type = 'authentication';
-      $jwt = filter_var($matches[1], FILTER_SANITIZE_STRING);
-      $stored_token = (new JWTModel)->find_by_token($token_type, $jwt);
+      $token = filter_var($matches[1], FILTER_SANITIZE_STRING);
+      $stored_token = (new JWTModel)->find_by_token('authentication', $token);
 
       return $stored_token;
 

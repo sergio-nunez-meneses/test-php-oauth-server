@@ -103,23 +103,26 @@ class CurlController
   // change function name
   public static function token_request()
   {
-    $token_type = 'authentication';
-
     $token = new JWTController();
     $client_credentials = $token->get_token_from_header();
 
     list($username, $password) = explode(':', base64_decode($client_credentials));
     $user = UserController::check_credentials($username, $password);
 
-    $stored_token = (new JWTModel)->find_by_user($token_type, $user['id']);
+    $stored_token = (new JWTModel)->find_by_user('authentication', $user['id']);
 
     if ($stored_token)
     {
-      if ($token->verify($stored_token['jwt']))
+      if ($token->verify($stored_token['token']))
       {
-        $authentication_token = ['authentication_token' => $stored_token['jwt']];
+        $authentication_token = ['authentication_token' => $stored_token['token']];
 
         echo json_encode($authentication_token);
+        return;
+      }
+      else
+      {
+        echo json_encode(['authentication_token' => 'Token revoked.']);
         return;
       }
     }
@@ -140,18 +143,16 @@ class CurlController
 
   public static function access_token_request()
   {
-    $token_type = 'authorization';
-
     $token = new JWTController();
     $authentication_token = $token->get_token_from_header();
 
-    $stored_authorization_token = (new JWTModel)->find_by_jti($token_type, $authentication_token['jti']);
+    $stored_authorization_token = (new JWTModel)->find_by_jti('authorization', $authentication_token['jti']);
 
     if ($stored_authorization_token)
     {
-      if ($token->verify_access_token($stored_authorization_token['at']))
+      if ($token->verify_access_token($stored_authorization_token['token']))
       {
-        echo $stored_authorization_token['at'];
+        echo $stored_authorization_token['token'];
         return;
       }
     }

@@ -14,6 +14,7 @@ echo "\n\nRequest started at " . date('H:i:s') . "\n";
 
 // client: login and request authentication token
 $token = CurlController::get_token($argv[1], $argv[2], $argv[3]);
+var_dump($token); // bug tracker
 
 if (empty($token)) {
   exit("\n\nCouldn't generate token.\n\n");

@@ -3,33 +3,33 @@
 class JWTModel extends DatabaseModel
 {
 
-  private function table_name($token_type)
+  private function get_table_name($keyword)
   {
-    if ($token_type === 'authentication')
+    if ($keyword === 'authentication')
     {
-      $table = 'tokens';
+      $table_name = 'authentication_tokens';
     }
-    elseif ($token_type === 'authorization')
+    elseif ($keyword === 'authorization')
     {
-      $table = 'authorization_tokens';
+      $table_name = 'authorization_tokens';
     }
-    elseif ($token_type === 'blacklist')
+    elseif ($keyword === 'blacklist')
     {
-      $table = 'tokens_blacklist';
+      $table_name = 'tokens_blacklist';
     }
 
-    return $table;
+    return $table_name;
   }
 
   public function create($token_type, $jti, $token, $user_id)
   {
     if ($token_type === 'authentication')
     {
-      $sql = "INSERT INTO tokens (jti, jwt, created_at, expires_at, users_id) VALUES (:jti, :token, NOW(), NOW() + INTERVAL 2 MINUTE, :user_id)";
+      $sql = "INSERT INTO authentication_tokens (jti, token, created_at, expires_at, users_id) VALUES (:jti, :token, NOW(), NOW() + INTERVAL 3 MINUTE, :user_id)";
     }
     elseif ($token_type === 'authorization')
     {
-      $sql = "INSERT INTO authorization_tokens (jti, at, created_at, expires_at, users_id) VALUES (:jti, :token, NOW(), NOW() + INTERVAL 2 MINUTE, :user_id)";
+      $sql = "INSERT INTO authorization_tokens (jti, token, created_at, expires_at, users_id) VALUES (:jti, :token, NOW(), NOW() + INTERVAL 2 MINUTE, :user_id)";
     }
 
     $placeholders = [
@@ -46,10 +46,10 @@ class JWTModel extends DatabaseModel
   }
 
   // method not tested yet
-  public function read($token_type)
+  public function read($keyword)
   {
-    $table = $this->table_name($token_type);
-    $sql = "SELECT * FROM $table";
+    $table_name = $this->get_table_name($keyword);
+    $sql = "SELECT * FROM $table_name";
     $res = $this->run_query($sql);
 
     if ($res->rowCount() > 0)
@@ -61,10 +61,11 @@ class JWTModel extends DatabaseModel
   // method not tested yet
   public function update($jti, $new_jti)
   {
-    $sql = "UPDATE tokens SET jti = :new_jti, expires_at = :exp_at WHERE jti = :jti";
+    $table_name = $this->get_table_name($keyword);
+    $sql = "UPDATE $table_name SET jti = :new_jti WHERE jti = :jti";
     $placeholders = [
-      'jti' => $jti,
-      'jti' => $new_jti
+      'jti' => $new_jti,
+      'jti' => $jti
     ];
     $res = $this->run_query($sql, $placeholders)->rowCount();
 
@@ -74,10 +75,10 @@ class JWTModel extends DatabaseModel
     }
   }
 
-  public function delete($token_type, $jti)
+  public function delete($keyword, $jti)
   {
-    $table = $this->table_name($token_type);
-    $sql = "DELETE FROM $table WHERE jti = :jti";
+    $table_name = $this->get_table_name($keyword);
+    $sql = "DELETE FROM $table_name WHERE jti = :jti";
     $res = $this->run_query($sql, ['jti' => $jti])->rowCount();
 
     if ($res > 0)
@@ -86,13 +87,14 @@ class JWTModel extends DatabaseModel
     }
   }
 
-  public function add_to_blacklist($jti, $jwt, $at)
+  public function add_to_blacklist($jti, $token, $token_type, $user_id)
   {
-    $sql = "INSERT INTO tokens_blacklist (jti, jwt, at) VALUES (:jti, :jwt, :at)";
+    $sql = "INSERT INTO tokens_blacklist (jti, token, token_type, users_id) VALUES (:jti, :token, :token_type, :user_id)";
     $placeholders = [
       'jti' => $jti,
-      'jwt' => $jwt,
-      'at' => $at
+      'token' => $token,
+      'token_type' => $token_type,
+      'user_id' => $user_id
     ];
     $res = $this->run_query($sql, $placeholders)->rowCount();
 
@@ -102,45 +104,35 @@ class JWTModel extends DatabaseModel
     }
   }
 
-  // method not tested yet
-  public function remove_from_blacklist($jti)
+  public function find_by_jti($keyword, $jti)
   {
-    $sql = "DELETE FROM tokens_blacklist WHERE jti = :jti";
-    $res = $this->run_query($sql, ['jti' => $jti])->rowCount();
-
-    if ($res > 0)
-    {
-      return true;
-    }
-  }
-
-  public function find_by_jti($token_type, $jti)
-  {
-    $table = $this->table_name($token_type);
-    $sql = "SELECT * FROM $table WHERE jti =:jti";
+    $table_name = $this->get_table_name($keyword);
+    $sql = "SELECT * FROM $table_name WHERE jti =:jti";
     $res = $this->run_query($sql, ['jti' => $jti])->fetch();
     return $res;
   }
 
-  public function find_by_token($token_type, $token)
+  public function find_by_token($keyword, $token)
   {
-    if ($token_type === 'authentication')
-    {
-      $sql = "SELECT * FROM tokens WHERE jwt =:token";
-    }
-    elseif ($token_type === 'authorization')
-    {
-      $sql = "SELECT * FROM authorization_tokens WHERE at =:token";
-    }
-
+    $table_name = $this->get_table_name($keyword);
+    $sql = "SELECT * FROM $table_name WHERE token =:token";
     $res = $this->run_query($sql, ['token' => $token])->fetch();
     return $res;
   }
 
-  public function find_by_user($token_type, $user_id)
+  public function find_by_user($keyword, $user_id)
   {
-    $table = $this->table_name($token_type);
-    $sql = "SELECT * FROM $table WHERE users_id =:user_id ORDER BY created_at DESC LIMIT 1";
+    $table_name = $this->get_table_name($keyword);
+
+    if ($table_name === 'authentication' || $table_name === 'authorization')
+    {
+      $sql = "SELECT * FROM $table_name WHERE users_id =:user_id ORDER BY created_at DESC LIMIT 1";
+    }
+    else
+    {
+      $sql = "SELECT * FROM $table_name WHERE users_id =:user_id";
+    }
+
     $res = $this->run_query($sql, ['user_id' => $user_id])->fetch();
     return $res;
   }
