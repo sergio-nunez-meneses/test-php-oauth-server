@@ -135,7 +135,7 @@ Request ended at 09:46:06
 
 ### TODO:
 
-- Update database and ```JWTModel```.
+- ~~Update database and ```JWTModel```~~.
 - Improve error handling and remove redundant conditions in ```JWTController```.
 - Optimize ```CurlController``` for better request/response handling.
 - Improve URL's.
