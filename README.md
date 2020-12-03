@@ -2,7 +2,7 @@
 
 ### Description
 
-Beta version of a authentication/authorization server developed in pure PHP for [JSON Web Token](https://tools.ietf.org/html/rfc7519) generation, encryption, decryption and validation, inspired by the [OAuth 2.0](https://tools.ietf.org/html/rfc6749) protocol for performing a [client credentials grant type](https://tools.ietf.org/html/rfc6749#section-4.4) variant. Built for pedagogical purposes only.
+Beta version of a authentication/authorization server developed in pure PHP for [JSON Web Token](https://tools.ietf.org/html/rfc7519) generation, encryption, decryption and validation, inspired by the [OAuth 2.0](https://tools.ietf.org/html/rfc6749) protocol for performing a variant of the [client credentials grant type](https://tools.ietf.org/html/rfc6749#section-4.4). Built for pedagogical purposes only.
 
 ### Requirements
 
