@@ -19,7 +19,7 @@ class IndexController
       }
       else
       {
-        if ((new JWTController)->verify() && $request_method === 'GET')
+        if ((new JWTController)->verify(null, $uri) && $request_method === 'GET')
         {
           if ($uri === 'access_token')
           {
