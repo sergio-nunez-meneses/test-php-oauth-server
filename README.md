@@ -27,6 +27,12 @@ Then, create the file ```constants.php``` and fill it with your virtualhost's ur
 define('ISSUER', 'http://virtualhost.name');
 ```
 
+Finally, create a private/public key pair to sign, encrypt, decrypt and validate tokens. Inside the root folder, create the folder ```keys```, change directory to the folder ```test```, and paste the following line in the terminal:
+
+```
+php create_keys.php
+```
+
 ### Test
 
 The protocol flow is simulated in the file ```user_requires_token.php``` for now. To run it, change directory to the folder ```test``` and paste the following line in the terminal:

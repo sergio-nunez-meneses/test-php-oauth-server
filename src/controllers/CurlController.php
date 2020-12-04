@@ -41,6 +41,10 @@ class CurlController
         CURLOPT_VERBOSE => TRUE
       ];
     }
+    else
+    {
+      throw new \Exception('Invalid request.');
+    }
 
     return CurlController::execute_request($curl_opts, $args[0]);
   }
@@ -95,8 +99,7 @@ class CurlController
       }
       else
       {
-        $error_msg = 'Token revoked.';
-        echo $error_msg;
+        echo 'Token revoked.';
         return;
       }
     }
@@ -126,6 +129,11 @@ class CurlController
       if ($token->verify_access_token($stored_authorization_token['token']))
       {
         echo $stored_authorization_token['token'];
+        return;
+      }
+      else
+      {
+        echo 'Token revoked.';
         return;
       }
     }
