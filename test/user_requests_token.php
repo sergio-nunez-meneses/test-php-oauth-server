@@ -24,7 +24,7 @@ echo "\n\nYour token has been generated:\n\n";
 echo "$authentication_token\n\n";
 
 // service: request authorization token and authorize user
-$encrypted_authorization_token = CurlController::request(ISSUER . '/access_token', $authentication_token);
+$encrypted_authorization_token = CurlController::request(ISSUER . '/auth/access_token', $authentication_token);
 var_dump($encrypted_authorization_token); // bug tracker
 
 if (empty($encrypted_authorization_token)) {
@@ -44,7 +44,7 @@ echo "Your authentication token has been validated, you can now access our servi
 echo "Redirecting to http://services.local/service\n\n";
 
 // service: request refresh token
-// $refresh_token = CurlController::request(ISSUER . '/refresh_token', $authentication_token);
+// $refresh_token = CurlController::request(ISSUER . '/auth/refresh_token', $authentication_token);
 //
 // if (empty($refresh_token)) {
 //   exit("\n\nCouldn't refresh token.\n\n");
@@ -54,7 +54,7 @@ echo "Redirecting to http://services.local/service\n\n";
 // echo "$refresh_token\n\n";
 
 // client: logout and revoke authentication token (since authentication token has been replaced in databse, this doesn't work)
-// $logout = CurlController::request(ISSUER . '/revoke_token', $authentication_token);
+// $logout = CurlController::request(ISSUER . '/auth/revoke_token', $authentication_token);
 //
 // if ($logout) {
 //   echo "\n\nUser logged out.\n\n";

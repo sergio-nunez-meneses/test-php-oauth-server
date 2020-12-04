@@ -38,7 +38,7 @@ php create_keys.php
 The protocol flow is simulated in the file ```user_requires_token.php``` for now. To run it, change directory to the folder ```test``` and paste the following line in the terminal:
 
 ```
-php user_requests_token.php http://virtualhost.name/request_token juan 123456789
+php user_requests_token.php http://virtualhost.name/auth/request_token juan 123456789
 ```
 
 A response like the following should be displayed:
@@ -144,5 +144,5 @@ Request ended at 09:46:06
 - ~~Update database and ```JWTModel```.~~
 - Improve error handling and remove redundant conditions in ```JWTController```.
 - ~~Optimize ```CurlController``` for better request/response handling.~~
-- Improve URL's.
+- ~~Improve URL's.~~
 - Remove ```views``` and ```templates``` folders.

@@ -46,7 +46,9 @@ class CurlController
       throw new \Exception('Invalid request.');
     }
 
-    return CurlController::execute_request($curl_opts, $args[0]);
+    $url = filter_var($args[0], FILTER_VALIDATE_URL, FILTER_FLAG_PATH_REQUIRED);
+
+    return CurlController::execute_request($curl_opts, $url);
   }
 
   private static function execute_request($curl_opts, $url)
