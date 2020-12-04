@@ -4,45 +4,45 @@ class CurlController
 {
 
   // methods used for running user_requests_token.php test
-  public static function request($token, $url)
+  public static function request()
   {
-    $curl_opts = [
-      CURLOPT_HTTPHEADER => [
-        'Content-Type: application/json',
-        "Authorization: Bearer $token"
-      ],
-      CURLOPT_RETURNTRANSFER => true,
-      CURLOPT_VERBOSE => TRUE
-    ];
+    $num_args = func_num_args();
+    $args = func_get_args();
 
-    // perform request
-    return CurlController::execute_request($curl_opts, $url);
-  }
+    if ($num_args === 3)
+    {
+      // build header and body
+      $token = base64_encode($args[1] . ':' . $args[2]);
+      $payload = http_build_query([
+        'grant_type' => 'client_credentials',
+        'scope' => '' // optional ?
+      ]);
 
-  // optimize
-  public static function get_token($username, $password, $url, $scope = null)
-  {
-    // build header and body
-    $token = base64_encode("$username:$password");
-    $payload = http_build_query([
-      'grant_type' => 'client_credentials',
-      'scope' => $scope // optional ?
-    ]);
+      $curl_opts = [
+        CURLOPT_HTTPHEADER => [
+          'Content-Type: application/x-www-form-urlencoded',
+          "Authorization: Basic $token",
+        ],
+        CURLOPT_POST => 1,
+        CURLOPT_POSTFIELDS => $payload,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_SSL_VERIFYPEER => false, // fixed bug 'Curl failed with error #60'
+        CURLOPT_VERBOSE => TRUE
+      ];
+    }
+    elseif ($num_args === 2)
+    {
+      $curl_opts = [
+        CURLOPT_HTTPHEADER => [
+          'Content-Type: application/json',
+          'Authorization: Bearer ' . $args[1]
+        ],
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_VERBOSE => TRUE
+      ];
+    }
 
-    $curl_opts = [
-      CURLOPT_HTTPHEADER => [
-        'Content-Type: application/x-www-form-urlencoded',
-        "Authorization: Basic $token",
-      ],
-      CURLOPT_POST => 1,
-      CURLOPT_POSTFIELDS => $payload,
-      CURLOPT_RETURNTRANSFER => true,
-      CURLOPT_SSL_VERIFYPEER => false, // fixed bug 'Curl failed with error #60'
-      CURLOPT_VERBOSE => TRUE
-    ];
-
-    // perform request
-    return CurlController::execute_request($curl_opts, $url);
+    return CurlController::execute_request($curl_opts, $args[0]);
   }
 
   private static function execute_request($curl_opts, $url)

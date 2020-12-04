@@ -13,7 +13,7 @@ date_default_timezone_set('Europe/Paris');
 echo "\n\nRequest started at " . date('H:i:s') . "\n";
 
 // client: login and request authentication token
-$authentication_token = CurlController::get_token($argv[1], $argv[2], $argv[3]);
+$authentication_token = CurlController::request($argv[1], $argv[2], $argv[3]);
 var_dump($authentication_token); // bug tracker
 
 if (empty($authentication_token)) {
@@ -24,7 +24,7 @@ echo "\n\nYour token has been generated:\n\n";
 echo "$authentication_token\n\n";
 
 // service: request authorization token and authorize user
-$encrypted_authorization_token = CurlController::request($authentication_token, ISSUER . '/access_token');
+$encrypted_authorization_token = CurlController::request(ISSUER . '/access_token', $authentication_token);
 var_dump($encrypted_authorization_token); // bug tracker
 
 if (empty($encrypted_authorization_token)) {
@@ -44,7 +44,7 @@ echo "Your authentication token has been validated, you can now access our servi
 echo "Redirecting to http://services.local/service\n\n";
 
 // service: request refresh token
-// $refresh_token = CurlController::request($authentication_token, ISSUER . '/refresh_token');
+// $refresh_token = CurlController::request(ISSUER . '/refresh_token', $authentication_token);
 //
 // if (empty($refresh_token)) {
 //   exit("\n\nCouldn't refresh token.\n\n");
@@ -54,7 +54,7 @@ echo "Redirecting to http://services.local/service\n\n";
 // echo "$refresh_token\n\n";
 
 // client: logout and revoke authentication token (since authentication token has been replaced in databse, this doesn't work)
-// $logout = CurlController::request($authentication_token, 'http://ser.local/revoke_token');
+// $logout = CurlController::request(ISSUER . '/revoke_token', $authentication_token);
 //
 // if ($logout) {
 //   echo "\n\nUser logged out.\n\n";
