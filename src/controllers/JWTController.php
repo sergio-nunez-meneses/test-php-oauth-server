@@ -42,11 +42,28 @@ class JWTController
     return $encrypted_token;
   }
 
-  public function verify($encrypted_token = null, $uri = null)
+  public function verify()
   {
     // jwt validation from https://tools.ietf.org/html/rfc7519#section-7.2 , plus public key decryption
 
-    if (is_null($encrypted_token))
+    $num_args = func_num_args();
+    $arg = func_get_arg(0);
+    $valid_uris = ['request_token', 'access_token', 'refresh_token', 'revoke_token'];
+
+    if ($num_args === 1)
+    {
+      if (in_array($arg, $valid_uris))
+      {
+        $uri = $arg;
+        $encrypted_token = $this->get_token_from_header()['token'];
+        $has_token = false;
+      }
+      else
+      {
+        $encrypted_token = $arg;
+      }
+    }
+    else
     {
       $encrypted_token = $this->get_token_from_header()['token'];
       $has_token = false;
@@ -179,11 +196,18 @@ class JWTController
     return $encrypted_access_token;
   }
 
-  public function verify_access_token($encrypted_access_token = null)
+  public function verify_access_token()
   {
-    // condition not working yet
-    if (is_null($encrypted_access_token))
+    $num_args = func_num_args();
+    $arg = func_get_arg(0);
+
+    if ($num_args === 1)
     {
+      $encrypted_access_token = $arg;
+    }
+    else
+    {
+      // this doesn't work yet
       $encrypted_access_token = $this->get_token_from_header();
       $has_token = false;
     }

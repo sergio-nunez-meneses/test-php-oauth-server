@@ -21,7 +21,7 @@ class IndexController
         {
           CurlController::token_request();
         }
-        elseif ((new JWTController)->verify(null, $endpoints) && $request_method === 'GET')
+        elseif ((new JWTController)->verify($endpoints) && $request_method === 'GET')
         {
           if ($endpoints === 'access_token')
           {
