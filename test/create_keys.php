@@ -7,9 +7,6 @@ $res = openssl_pkey_new([
 openssl_pkey_export($res, $private_key);
 $public_key = openssl_pkey_get_details($res);
 
-file_put_contents('../keys/private.key', $private_key);
-file_put_contents('../keys/public.key', $public_key['key']);
-
-// display keys in the terminal
-var_dump($private_key);
-var_dump($public_key);
+if (file_put_contents('private.key', $private_key) && file_put_contents('public.key', $public_key['key'])) {
+  echo 'private.key and public.key files created in ' . basename(getcwd()) . "folder.\n";
+}
