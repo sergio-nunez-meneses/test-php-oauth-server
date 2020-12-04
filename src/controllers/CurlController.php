@@ -2,72 +2,54 @@
 
 class CurlController
 {
+
   // methods used for running user_requests_token.php test
-  public static function request($token, $url)
+  public static function request()
   {
-    $curl_opts = [
-      CURLOPT_URL => $url,
-      CURLOPT_HTTPHEADER => [
-        'Content-Type: application/json',
-        "Authorization: Bearer $token"
-      ],
-      CURLOPT_RETURNTRANSFER => true,
-      CURLOPT_VERBOSE => TRUE
-    ];
+    $num_args = func_num_args();
+    $args = func_get_args();
 
-    try
+    if ($num_args === 3)
     {
-      $ch = curl_init();
+      // build header and body
+      $token = base64_encode($args[1] . ':' . $args[2]);
+      $payload = http_build_query([
+        'grant_type' => 'client_credentials',
+        'scope' => '' // optional ?
+      ]);
 
-      if ($ch === false)
-      {
-        throw new \Exception('Failed to initialize request.');
-      }
-
-      curl_setopt_array($ch, $curl_opts);
-      $response = curl_exec($ch);
-
-      if ($response === false)
-      {
-        throw new Exception(curl_error($ch), curl_errno($ch));
-      }
-
-      curl_close($ch);
-      return $response;
+      $curl_opts = [
+        CURLOPT_HTTPHEADER => [
+          'Content-Type: application/x-www-form-urlencoded',
+          "Authorization: Basic $token",
+        ],
+        CURLOPT_POST => 1,
+        CURLOPT_POSTFIELDS => $payload,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_SSL_VERIFYPEER => false, // fixed bug 'Curl failed with error #60'
+        CURLOPT_VERBOSE => TRUE
+      ];
     }
-    catch (\Exception $e)
+    elseif ($num_args === 2)
     {
-      trigger_error(
-        sprintf('Curl failed with error #%d: %s', $e->getCode(), $e->getMessage()),
-      E_USER_ERROR);
+      $curl_opts = [
+        CURLOPT_HTTPHEADER => [
+          'Content-Type: application/json',
+          'Authorization: Bearer ' . $args[1]
+        ],
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_VERBOSE => TRUE
+      ];
     }
+
+    return CurlController::execute_request($curl_opts, $args[0]);
   }
 
-  // optimize
-  public static function get_token($username, $password, $uri, $scope = null)
+  private static function execute_request($curl_opts, $url)
   {
-    // build header and body
-    $token = base64_encode("$username:$password");
-    $payload = http_build_query([
-      'grant_type' => 'client_credentials',
-      'scope' => $scope // optional ?
-    ]);
-    $curl_opts = [
-      CURLOPT_HTTPHEADER => [
-        'Content-Type: application/x-www-form-urlencoded',
-        "Authorization: Basic $token",
-      ],
-      CURLOPT_POST => 1,
-      CURLOPT_POSTFIELDS => $payload,
-      CURLOPT_RETURNTRANSFER => true,
-      CURLOPT_SSL_VERIFYPEER => false, // fixed bug 'Curl failed with error #60'
-      CURLOPT_VERBOSE => TRUE
-    ];
-
-    // perform request
     try
     {
-      $ch = curl_init($uri);
+      $ch = curl_init($url);
 
       if ($ch === false)
       {
@@ -82,13 +64,6 @@ class CurlController
         throw new Exception(curl_error($ch), curl_errno($ch));
       }
 
-      $response = json_decode($response, true);
-
-      if (!isset($response['authentication_token']))
-      {
-        throw new Exception('Failed, exiting.');
-      }
-
       curl_close($ch);
       return $response;
     }
@@ -100,7 +75,7 @@ class CurlController
     }
   }
 
-  // change function name
+  // return authentication token
   public static function token_request()
   {
     $token = new JWTController();
@@ -115,14 +90,13 @@ class CurlController
     {
       if ($token->verify($stored_token['token']))
       {
-        $authentication_token = ['authentication_token' => $stored_token['token']];
-
-        echo json_encode($authentication_token);
+        echo $stored_token['token'];
         return;
       }
       else
       {
-        echo json_encode(['authentication_token' => 'Token revoked.']);
+        $error_msg = 'Token revoked.';
+        echo $error_msg;
         return;
       }
     }
@@ -135,12 +109,11 @@ class CurlController
       return;
     }
 
-    $authentication_token = ['authentication_token' => $generated_token];
-
-    echo json_encode($authentication_token);
+    echo $generated_token;
     return;
   }
 
+  // return authorization token
   public static function access_token_request()
   {
     $token = new JWTController();
