@@ -21,5 +21,5 @@ function class_autoloader($class_name) {
     throw new \Exception('Loaded class not found');
   }
 
-  require_once($path);
+  require $path;
 }
