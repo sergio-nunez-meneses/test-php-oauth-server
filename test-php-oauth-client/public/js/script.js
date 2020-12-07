@@ -7,8 +7,12 @@ function request(buttonName) {
   if (buttonName === 'request') {
     var method = 'POST',
       url = '../../src/request_authentication_token.php',
+      contentType = 'application/x-www-form-urlencoded',
+      data = 'name=' + buttonName; // variable not working yet
+  } else if (buttonName === 'validate') {
+    var method = 'GET',
+      url = '../../src/validate_authentication_token.php',
       contentType = 'application/x-www-form-urlencoded';
-      data = 'name=' + buttonName;
   }
 
   xhr.open(method, url);
