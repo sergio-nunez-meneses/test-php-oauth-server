@@ -1,32 +1,30 @@
 <?php
 require 'src/curl_request.php';
+require 'src/response.php';
 
-if (array_key_exists('HTTP_AUTHORIZATION', $_SERVER))
-{
-  $authorization_header = $_SERVER['HTTP_AUTHORIZATION'];
-}
-elseif (array_key_exists('Authorization', $_SERVER))
-{
-  $authorization_header = $_SERVER['Authorization'];
-}
-else
-{
-  exit("Authentication token not found.\n");
-}
+// handle cross origin resource sharing (CORS)
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Credentials: true');
+header('Access-Control-Allow-Methods: OPTIONS, GET, POST');
+header('Access-Control-Max-Age: 3600');
+header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With');
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $uri = explode('/', $uri);
 
 if ($uri[1] === 'validate') {
   // service: request authorization token and authorize user
-  $encrypted_authentication_token = explode(' ', $authorization_header)[1];
+  $response = new ReponseController();
+  $encrypted_authentication_token = $response->get_token_from_header();
   $encrypted_authorization_token = CurlController::request('http://ser.local/auth/access_token', $encrypted_authentication_token);
+  $validate_authorization_token = $response->verify_access_token($encrypted_authorization_token);
 
-  if (empty($encrypted_authorization_token)) {
-    exit("Authorization token couldn't be generated.\n");
+  if (!$validate_authorization_token) {
+    exit("Authorization token couldn't be validated.\n");
   }
 
-  echo true;
+  echo $encrypted_authorization_token;
+
 } else {
   exit("Page not found.\n");
 }

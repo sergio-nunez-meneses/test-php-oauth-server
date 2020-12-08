@@ -17,3 +17,4 @@ date_default_timezone_set('Europe/Paris');
 $exp = time() + (3 * 60 * 1 * 1);
 echo 'Your authentication token has been validated. It will expire at ' . date('m/d/Y H:i:s', $exp) . ".\n";
 echo "You can now access our services.\n";
+echo "Authorization token: $encrypted_authorization_token\n";
