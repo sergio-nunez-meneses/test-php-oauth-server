@@ -67,7 +67,7 @@ class CurlController
 
       if ($response === false)
       {
-        throw new Exception(curl_error($ch), curl_errno($ch));
+        echo curl_error($ch) . "\n" . curl_strerror(curl_errno($ch));
       }
 
       curl_close($ch);

@@ -1,12 +1,19 @@
 const buttons = document.getElementsByTagName('button');
-console.log('cookie: ', document.cookie);
+
+if (document.cookie !== '' && document.cookie.startsWith('authentication_cookie')) {
+  var cookie = document.cookie;
+  console.log(cookie);
+}
 
 function ajax(method, url, contentType, data) {
   let xhr = new XMLHttpRequest();
   xhr.open(method, url);
   xhr.setRequestHeader('Content-type', contentType);
+  xhr.withCredentials = true;
   xhr.send(typeof data !== 'undefined' ? data : '');
-  xhr.onload = response; // callback function in successful response (this.readyState = 4 && this.status = 200)
+
+  // on successful response (this.readyState = 4 && this.status = 200)
+  xhr.onload = response; // callback function
 }
 
 function request(buttonName) {
@@ -14,11 +21,14 @@ function request(buttonName) {
     var method = 'POST',
       url = '../../src/request_authentication_token.php',
       contentType = 'application/x-www-form-urlencoded',
-      data = 'client_credentials=' + clientCredentials; // variable not working yet
+      data = 'client_credentials='; // variable not working yet
   } else if (buttonName === 'validate') {
     var method = 'GET',
       url = '../../src/validate_authentication_token.php',
       contentType = 'application/x-www-form-urlencoded';
+  } else {
+    error('Invalid request.');
+    return;
   }
 
   ajax(method, url, contentType, data);
@@ -30,7 +40,6 @@ function response() {
     return;
   }
 
-  console.log(this.getAllResponseHeaders());
   console.log(this.responseText);
 }
 
