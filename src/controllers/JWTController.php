@@ -418,6 +418,10 @@ class JWTController
     {
       $authorization_header = $_SERVER['Authorization'];
     }
+    elseif (array_key_exists('Authorization', apache_request_headers()))
+    {
+      $authorization_header = apache_request_headers()['Authorization'];
+    }
     else
     {
       throw new \Exception('Unauthorized.');

@@ -7,7 +7,7 @@ class IndexController
   {
     $path = $uri[1];
     $endpoints = $uri[2];
-    $valid_uris = ['', 'auth', 'request_token', 'access_token', 'refresh_token', 'revoke_token'];
+    $valid_uris = ['', 'auth', 'request_token', 'verify_token', 'access_token', 'refresh_token', 'revoke_token'];
 
     if (in_array($path, $valid_uris) && in_array($endpoints, $valid_uris))
     {
@@ -20,6 +20,10 @@ class IndexController
         if ($endpoints === 'request_token' && $request_method === 'POST')
         {
           CurlController::token_request();
+        }
+        elseif ($endpoints === 'verify_token' && $request_method === 'GET')
+        {
+          CurlController::verify_token_request();
         }
         elseif ((new JWTController)->verify($endpoints) && $request_method === 'GET')
         {

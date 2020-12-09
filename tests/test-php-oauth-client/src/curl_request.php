@@ -20,6 +20,7 @@ class CurlController
 
       $curl_opts = [
         CURLOPT_HTTPHEADER => [
+          'Origin: ' . $_SERVER['HTTP_HOST'],
           'Content-Type: application/x-www-form-urlencoded',
           "Authorization: Basic $token",
         ],
@@ -34,6 +35,7 @@ class CurlController
     {
       $curl_opts = [
         CURLOPT_HTTPHEADER => [
+          'Origin: ' . $_SERVER['HTTP_HOST'],
           'Content-Type: application/json',
           'Authorization: Bearer ' . $args[1]
         ],

@@ -9,7 +9,6 @@ function ajax(method, url, contentType, data) {
   let xhr = new XMLHttpRequest();
   xhr.open(method, url);
   xhr.setRequestHeader('Content-type', contentType);
-  xhr.withCredentials = true;
   xhr.send(typeof data !== 'undefined' ? data : '');
 
   // on successful response (this.readyState = 4 && this.status = 200)
