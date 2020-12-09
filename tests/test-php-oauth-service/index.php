@@ -15,16 +15,20 @@ $uri = explode('/', $uri);
 if ($uri[1] === 'validate') {
   // service: request authorization token and authorize user
   $response = new ReponseController();
+
+  if (!$response->get_origin_from_header()) {
+    exit("403: Unauthorized.");
+  }
+
   $encrypted_authentication_token = $response->get_token_from_header();
   $encrypted_authorization_token = CurlController::request('http://ser.local/auth/access_token', $encrypted_authentication_token);
-  $validate_authorization_token = $response->verify_access_token($encrypted_authorization_token);
+  $validate_authorization_token = $response->verify_authorization_token($encrypted_authorization_token);
 
   if (!$validate_authorization_token) {
     exit("Authorization token couldn't be validated.\n");
   }
 
   echo $encrypted_authorization_token;
-
 } else {
   exit("Page not found.\n");
 }
