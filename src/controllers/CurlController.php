@@ -118,6 +118,11 @@ class CurlController
     return;
   }
 
+  public static function verify_token_request()
+  {
+    echo (new JWTController)->verify();
+  }
+
   // return authorization token
   public static function access_token_request()
   {
