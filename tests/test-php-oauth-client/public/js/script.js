@@ -1,7 +1,7 @@
 const buttons = document.getElementsByTagName('button');
 
 if (document.cookie !== '' && document.cookie.startsWith('authentication_cookie')) {
-  var cookie = document.cookie;
+  var cookie = document.cookie.split('=')[1];
   console.log(cookie);
 }
 
@@ -10,8 +10,6 @@ function ajax(method, url, contentType, data) {
   xhr.open(method, url);
   xhr.setRequestHeader('Content-type', contentType);
   xhr.send(typeof data !== 'undefined' ? data : '');
-
-  // on successful response (this.readyState = 4 && this.status = 200)
   xhr.onload = response; // callback function
 }
 
@@ -19,11 +17,15 @@ function request(buttonName) {
   if (buttonName === 'request') {
     var method = 'POST',
       url = '../../src/request_authentication_token.php',
-      contentType = 'application/x-www-form-urlencoded',
-      data = 'client_credentials='; // variable not working yet
+      contentType = 'application/x-www-form-urlencoded';
+      data = ''; // data = 'client_credentials=' + inputs
   } else if (buttonName === 'validate') {
     var method = 'GET',
       url = '../../src/validate_authentication_token.php',
+      contentType = 'application/x-www-form-urlencoded';
+  } else if (buttonName === 'revoke') {
+    var method = 'GET',
+      url = '../../src/revoke_authentication_token.php',
       contentType = 'application/x-www-form-urlencoded';
   } else {
     error('Invalid request.');
