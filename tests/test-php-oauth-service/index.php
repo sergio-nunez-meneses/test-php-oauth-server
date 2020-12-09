@@ -29,6 +29,25 @@ if ($uri[1] === 'validate') {
   }
 
   echo $encrypted_authorization_token;
+} elseif ($uri[1] === 'service') {
+  // client: access service
+  $response = new ReponseController();
+
+  if (!$response->get_origin_from_header()) {
+    exit("403: Unauthorized.\n");
+  }
+
+  if (!isset($_GET['authentication_token'])) {
+    exit("Authentication token not found.\n");
+  }
+
+  $validate_authentication_token = CurlController::request('http://ser.local/auth/verify_token', $_GET['authentication_token']);
+
+  if (!$validate_authentication_token) {
+    exit("Authentication token couldn't be validated.\n");
+  }
+
+  echo "Welcome back, whatever your name is.\nIf you can see this message, it means that you really have access.";
 } else {
   exit("Page not found.\n");
 }
