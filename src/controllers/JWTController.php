@@ -146,18 +146,23 @@ class JWTController
         }
       }
 
-      if (!$token_model->add_to_blacklist($stored_token['jti'], $stored_token['token'], $token_type, $stored_token['users_id']))
+      if (!$this->revoke_tokens($token_model, $stored_token['jti'], $stored_token['token'], $stored_token['users_id']))
       {
-        throw new \Exception("Token couldn't be added to blacklist.");
+        throw new \Exception("Tokens couldn't be revoked and deleted from database.");
       }
 
-      if (!$token_model->delete($token_type, $stored_token['jti']))
-      {
-        throw new \Exception("Token couldn't be revoked and deleted from database.");
-      }
+      // if (!$token_model->add_to_blacklist($stored_token['jti'], $stored_token['token'], $token_type, $stored_token['users_id']))
+      // {
+      //   throw new \Exception("Token couldn't be added to blacklist.");
+      // }
+      //
+      // if (!$token_model->delete($token_type, $stored_token['jti']))
+      // {
+      //   throw new \Exception("Token couldn't be revoked and deleted from database.");
+      // }
 
       // after deleting the token, no request works
-      throw new \Exception('Token expired.');
+      throw new \Exception('Authentication token expired.');
     }
 
     $private_key = $this->get_private_key();
@@ -299,18 +304,56 @@ class JWTController
     return $new_token;
   }
 
+  // revoke both authentication and authorization tokens
   public function revoke_token()
   {
     $stored_token = $this->get_token_from_header();
+    $token_model = new JWTModel();
 
     if (!$stored_token)
     {
-      throw new \Exception("Token wasn't found neither in header, nor in database.");
+      throw new \Exception("Authentication token wasn't found neither in header, nor in database.");
     }
 
-    if (!(new JWTModel)->delete('authentication', $stored_token['jti']))
+    if (!$token_model->delete('authentication', $stored_token['jti']))
     {
-      throw new \Exception("Token couldn't be revoked and deleted from database.");
+      throw new \Exception("Authentication token couldn't be revoked and deleted from database.");
+    }
+
+    if (!$token_model->find_by_jti('authorization', $stored_token['jti']))
+    {
+      throw new \Exception("Authorization token has already been revoked or deleted from database.");
+    }
+
+    if (!$token_model->delete('authorization', $stored_token['jti']))
+    {
+      throw new \Exception("Authorization token couldn't be revoked and deleted from database.");
+    }
+
+    return true;
+  }
+
+  // revoke and blacklist both authentication and authorization tokens
+  private function revoke_tokens($token_model, $jti, $token, $user_id)
+  {
+    if (!$token_model->add_to_blacklist($jti, $token, 'authentication', $user_id))
+    {
+      throw new \Exception("Authentication token couldn't be added to blacklist.");
+    }
+
+    if (!$token_model->add_to_blacklist($jti, $token, 'authorization', $user_id))
+    {
+      throw new \Exception("Authorization token couldn't be added to blacklist.");
+    }
+
+    if (!$token_model->delete('authentication', $jti))
+    {
+      throw new \Exception("Authentication token couldn't be revoked and deleted from database.");
+    }
+
+    if (!$token_model->delete('authorization', $jti))
+    {
+      throw new \Exception("Authorization token couldn't be revoked and deleted from database.");
     }
 
     return true;
@@ -406,6 +449,33 @@ class JWTController
     }
 
     return openssl_verify($signature, $input, $key, $algorithm);
+  }
+
+  public function get_origin_from_header()
+  {
+    if (array_key_exists('HTTP_ORIGIN', $_SERVER))
+    {
+      $origin = $_SERVER['HTTP_ORIGIN'];
+    }
+    elseif (array_key_exists('HTTP_REFERER', $_SERVER))
+    {
+      $origin = $_SERVER['HTTP_REFERER'];
+    }
+    elseif (array_key_exists('Origin', apache_request_headers()))
+    {
+      $origin = apache_request_headers()['Origin'];
+    }
+    else
+    {
+      throw new \Exception("Request's origin domain wasn't found.");
+    }
+
+    // if (!in_array($origin, AUTHORIZED_DOMAINS))
+    // {
+    //   throw new \Exception('Unauthorized domain.');
+    // }
+
+    return true;
   }
 
   public function get_token_from_header()
