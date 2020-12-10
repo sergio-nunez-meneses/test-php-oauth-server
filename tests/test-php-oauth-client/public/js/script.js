@@ -13,26 +13,23 @@ function ajax(method, url, contentType, data) {
   xhr.onload = response; // callback function
 }
 
-function request(buttonName) {
+function request(buttonName, buttonValue) {
   if (buttonName === 'request') {
-    var method = 'POST',
-      url = '../../src/request_authentication_token.php',
+    var url = '../../src/request_authentication_token.php',
       contentType = 'application/x-www-form-urlencoded';
       data = ''; // data = 'client_credentials=' + inputs
   } else if (buttonName === 'validate') {
-    var method = 'GET',
-      url = '../../src/validate_authentication_token.php',
+    var url = '../../src/validate_authentication_token.php',
       contentType = 'application/x-www-form-urlencoded';
   } else if (buttonName === 'revoke') {
-    var method = 'GET',
-      url = '../../src/revoke_authentication_token.php',
+    var url = '../../src/revoke_authentication_token.php',
       contentType = 'application/x-www-form-urlencoded';
   } else {
     error('Invalid request.');
     return;
   }
 
-  ajax(method, url, contentType, data);
+  ajax(buttonValue, url, contentType, data);
 }
 
 function response() {
@@ -50,6 +47,6 @@ function error(error) {
 
 for (let button of buttons) {
   button.addEventListener('click', () => {
-    request(button.name);
+    request(button.name, button.value);
   });
 }
