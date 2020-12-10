@@ -408,6 +408,33 @@ class JWTController
     return openssl_verify($signature, $input, $key, $algorithm);
   }
 
+  public function get_origin_from_header()
+  {
+    if (array_key_exists('HTTP_ORIGIN', $_SERVER))
+    {
+      $origin = $_SERVER['HTTP_ORIGIN'];
+    }
+    elseif (array_key_exists('HTTP_REFERER', $_SERVER))
+    {
+      $origin = $_SERVER['HTTP_REFERER'];
+    }
+    elseif (array_key_exists('Origin', apache_request_headers()))
+    {
+      $origin = apache_request_headers()['Origin'];
+    }
+    else
+    {
+      throw new \Exception("Request's origin domain wasn't found.");
+    }
+
+    // if (!in_array($origin, AUTHORIZED_DOMAINS))
+    // {
+    //   throw new \Exception('Unauthorized domain.');
+    // }
+
+    return true;
+  }
+
   public function get_token_from_header()
   {
     if (array_key_exists('HTTP_AUTHORIZATION', $_SERVER))

@@ -33,7 +33,7 @@ Finally, create a private/public key pair to sign, encrypt, decrypt and validate
 php create_keys.php
 ```
 
-### Test
+### Tests
 
 The protocol flow is simulated in the file ```user_requires_token.php``` for now. To run it, change directory to the folder ```test``` and paste the following line in the terminal:
 
@@ -138,11 +138,3 @@ Redirecting to http://services.local/service
 
 Request ended at 09:46:06
 ```
-
-### TODO:
-
-- ~~Update database and ```JWTModel```.~~
-- Improve error handling and remove redundant conditions in ```JWTController```.
-- ~~Optimize ```CurlController``` for better request/response handling.~~
-- ~~Improve URL's.~~
-- Remove ```views``` and ```templates``` folders.
