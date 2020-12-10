@@ -1,5 +1,5 @@
 <?php
-require '../tools/constants.php';
+require './tools/constants.php';
 
 class JWTController
 {
@@ -451,6 +451,7 @@ class JWTController
     return openssl_verify($signature, $input, $key, $algorithm);
   }
 
+  // method not working yet
   public function get_origin_from_header()
   {
     if (array_key_exists('HTTP_ORIGIN', $_SERVER))
@@ -555,7 +556,7 @@ class JWTController
 
   private function get_private_key()
   {
-    $private_key = file_get_contents('../keys/private.key');
+    $private_key = file_get_contents('./keys/private.key');
 
     if ($private_key)
     {
@@ -574,7 +575,7 @@ class JWTController
 
     if ($private_key)
     {
-      file_put_contents('../keys/private.key', $private_key); // change permissions
+      file_put_contents('./keys/private.key', $private_key); // change permissions
       return $private_key;
     }
   }

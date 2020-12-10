@@ -12,9 +12,9 @@ function class_autoloader($class_name) {
   }
 
   if ($parent_folder === '') {
-    $path = "../src/$class_name.php";
+    $path = "./src/$class_name.php";
   } else {
-    $path = "../src/$parent_folder/$class_name.php";
+    $path = "./src/$parent_folder/$class_name.php";
   }
 
   if (!file_exists($path)) {

@@ -6,7 +6,7 @@ class IndexController
   public static function route_requests($uri, $request_method)
   {
     $path = $uri[1];
-    $endpoints = $uri[2];
+    $endpoints = isset($uri[2]) ? $uri[2] : '';
     $valid_uris = ['', 'auth', 'request_token', 'verify_token', 'access_token', 'refresh_token', 'revoke_token'];
 
     if (in_array($path, $valid_uris) && in_array($endpoints, $valid_uris))
