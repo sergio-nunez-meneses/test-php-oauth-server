@@ -304,25 +304,36 @@ class JWTController
     return $new_token;
   }
 
-  // revoke authentication token
+  // revoke both authentication and authorization tokens
   public function revoke_token()
   {
     $stored_token = $this->get_token_from_header();
+    $token_model = new JWTModel();
 
     if (!$stored_token)
     {
-      throw new \Exception("Token wasn't found neither in header, nor in database.");
+      throw new \Exception("Authentication token wasn't found neither in header, nor in database.");
     }
 
-    if (!(new JWTModel)->delete('authentication', $stored_token['jti']))
+    if (!$token_model->delete('authentication', $stored_token['jti']))
     {
-      throw new \Exception("Token couldn't be revoked and deleted from database.");
+      throw new \Exception("Authentication token couldn't be revoked and deleted from database.");
+    }
+
+    if (!$token_model->find_by_jti('authorization', $stored_token['jti']))
+    {
+      throw new \Exception("Authorization token has already been revoked or deleted from database.");
+    }
+
+    if (!$token_model->delete('authorization', $stored_token['jti']))
+    {
+      throw new \Exception("Authorization token couldn't be revoked and deleted from database.");
     }
 
     return true;
   }
 
-  // revoke both authentication and authorization tokens
+  // revoke and blacklist both authentication and authorization tokens
   private function revoke_tokens($token_model, $jti, $token, $user_id)
   {
     if (!$token_model->add_to_blacklist($jti, $token, 'authentication', $user_id))
