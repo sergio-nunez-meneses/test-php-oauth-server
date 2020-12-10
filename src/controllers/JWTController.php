@@ -146,18 +146,23 @@ class JWTController
         }
       }
 
-      if (!$token_model->add_to_blacklist($stored_token['jti'], $stored_token['token'], $token_type, $stored_token['users_id']))
+      if (!$this->revoke_tokens($token_model, $stored_token['jti'], $stored_token['token'], $stored_token['users_id']))
       {
-        throw new \Exception("Token couldn't be added to blacklist.");
+        throw new \Exception("Tokens couldn't be revoked and deleted from database.");
       }
 
-      if (!$token_model->delete($token_type, $stored_token['jti']))
-      {
-        throw new \Exception("Token couldn't be revoked and deleted from database.");
-      }
+      // if (!$token_model->add_to_blacklist($stored_token['jti'], $stored_token['token'], $token_type, $stored_token['users_id']))
+      // {
+      //   throw new \Exception("Token couldn't be added to blacklist.");
+      // }
+      //
+      // if (!$token_model->delete($token_type, $stored_token['jti']))
+      // {
+      //   throw new \Exception("Token couldn't be revoked and deleted from database.");
+      // }
 
       // after deleting the token, no request works
-      throw new \Exception('Token expired.');
+      throw new \Exception('Authentication token expired.');
     }
 
     $private_key = $this->get_private_key();
@@ -299,6 +304,7 @@ class JWTController
     return $new_token;
   }
 
+  // revoke authentication token
   public function revoke_token()
   {
     $stored_token = $this->get_token_from_header();
@@ -311,6 +317,32 @@ class JWTController
     if (!(new JWTModel)->delete('authentication', $stored_token['jti']))
     {
       throw new \Exception("Token couldn't be revoked and deleted from database.");
+    }
+
+    return true;
+  }
+
+  // revoke both authentication and authorization tokens
+  private function revoke_tokens($token_model, $jti, $token, $user_id)
+  {
+    if (!$token_model->add_to_blacklist($jti, $token, 'authentication', $user_id))
+    {
+      throw new \Exception("Authentication token couldn't be added to blacklist.");
+    }
+
+    if (!$token_model->add_to_blacklist($jti, $token, 'authorization', $user_id))
+    {
+      throw new \Exception("Authorization token couldn't be added to blacklist.");
+    }
+
+    if (!$token_model->delete('authentication', $jti))
+    {
+      throw new \Exception("Authentication token couldn't be revoked and deleted from database.");
+    }
+
+    if (!$token_model->delete('authorization', $jti))
+    {
+      throw new \Exception("Authorization token couldn't be revoked and deleted from database.");
     }
 
     return true;

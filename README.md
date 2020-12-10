@@ -138,3 +138,8 @@ Redirecting to http://services.local/service
 
 Request ended at 09:46:06
 ```
+
+### TODO:
+
+- Optimize queries in ```JWTModel```.
+- Improve error handling, token collection and data verification, and remove redundant conditions in ```JWTController```.

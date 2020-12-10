@@ -157,6 +157,11 @@ class CurlController
     return;
   }
 
+  public static function verify_access_token_request()
+  {
+    echo (new JWTController)->verify_access_token();
+  }
+
   public static function refresh_token_request()
   {
     echo (new JWTController)->refresh_token();
