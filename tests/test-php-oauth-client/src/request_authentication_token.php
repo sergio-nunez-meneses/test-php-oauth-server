@@ -8,7 +8,10 @@ if (isset($_COOKIE['authentication_cookie'])) {
 }
 
 // client: login and request authentication token
-$authentication_token = CurlController::request('http://ser.local/auth/request_token', 'sergio', '123456789');
+$client_credentials = filter_var($_POST['client_credentials'], FILTER_SANITIZE_STRING);
+$authentication_token = CurlController::request('http://ser.local/auth/request_token', $client_credentials, 'client credentials test');
+// $authentication_token = CurlController::request('http://ser.local/auth/request_token', 'juan', '123456789');
+// $authentication_token = CurlController::request('https://sergion.promo-41.codeur.online/oauthserver/auth/request_token', 'juan', '123456789');
 
 if (empty($authentication_token)) {
   exit("Authentication token couldn't be generated.\n");
