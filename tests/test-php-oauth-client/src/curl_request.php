@@ -27,7 +27,9 @@ class CurlController
         CURLOPT_POST => 1,
         CURLOPT_POSTFIELDS => $payload,
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_SSL_VERIFYPEER => false, // fixed bug 'Curl failed with error #60'
+        CURLOPT_SSL_VERIFYPEER => false, // fixed bug 'curl: (60) SSL certificate problem: unable to get local issuer certificate'
+        CURLOPT_SSL_VERIFYHOST => false,  // 'curl: (51) SSL peer certificate or SSH remote key was not OK'
+        CURLOPT_SSL_VERIFYSTATUS => false,
         CURLOPT_VERBOSE => TRUE
       ];
     }
@@ -40,6 +42,9 @@ class CurlController
           'Authorization: Bearer ' . $args[1]
         ],
         CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
+        CURLOPT_SSL_VERIFYSTATUS => false,
         CURLOPT_VERBOSE => TRUE
       ];
     }

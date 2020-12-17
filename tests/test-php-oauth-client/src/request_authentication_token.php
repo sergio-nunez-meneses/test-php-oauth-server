@@ -8,7 +8,7 @@ if (isset($_COOKIE['authentication_cookie'])) {
 }
 
 // client: login and request authentication token
-$authentication_token = CurlController::request('http://ser.local/auth/request_token', 'sergio', '123456789');
+$authentication_token = CurlController::request('http://ser.local/auth/request_token', 'juan', '123456789');
 
 if (empty($authentication_token)) {
   exit("Authentication token couldn't be generated.\n");
