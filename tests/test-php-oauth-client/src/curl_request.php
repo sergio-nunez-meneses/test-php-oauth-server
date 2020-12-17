@@ -12,7 +12,7 @@ class CurlController
     if ($num_args === 3)
     {
       // build header and body
-      // $token = base64_encode($args[1] . ':' . $args[2]);
+      $token = base64_encode($args[1] . ':' . $args[2]);
       $payload = http_build_query([
         'grant_type' => 'client_credentials',
         'scope' => '' // optional ?
@@ -22,8 +22,7 @@ class CurlController
         CURLOPT_HTTPHEADER => [
           'Origin: ' . $_SERVER['HTTP_HOST'],
           'Content-Type: application/x-www-form-urlencoded',
-          // "Authorization: Basic $token",
-          'Authorization: Basic ' . $args[1],
+          "Authorization: Basic $token",
         ],
         CURLOPT_POST => 1,
         CURLOPT_POSTFIELDS => $payload,

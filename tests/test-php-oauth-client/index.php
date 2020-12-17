@@ -12,8 +12,7 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="Sergio NUNEZ MENESES">
-    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> -->
-    <link rel="stylesheet" href="public/css/style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <title>Authentication Token Request</title>
   </head>
   <body>
@@ -28,29 +27,7 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
       }
       ?>
 
-      <div class="main-container">
-        <div class="login-container">
-          <div class="login-messages"></div>
-          <div class="login-form">
-            <div class="login-title">
-              <h4>DAVI Emotional AI Services</h4>
-            </div>
-            <div class="user-input">
-              <input id="username" type="text" class="login-input" name="username" value="username" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'username';}">
-            </div>
-            <div class="user-input">
-              <input type="password" class="login-input" name="password" value="password" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'password';}">
-            </div>
-            <div class="user-input">
-              <button class="request-button" type="button" name="request" value="POST">
-                Login
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- <div class="container w-25 my-5">
+      <div class="container w-25 my-5">
         <div class="d-flex flex-column justify-content-center">
           <button class="w-100 my-1 btn btn-lg bg-primary text-white" type="button" name="request" value="POST">
             Request Authentication Token
@@ -62,12 +39,12 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
             Revoke Authentication Token
           </button>
         </div>
-      </div> -->
+      </div>
     </main>
 
-    <!-- <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script> -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
     <script src="public/js/script.js"></script>
   </body>
 </html>
