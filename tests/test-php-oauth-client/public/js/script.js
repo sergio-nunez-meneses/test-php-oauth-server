@@ -9,30 +9,23 @@ function ajax(method, url, contentType, data) {
   let xhr = new XMLHttpRequest();
   xhr.open(method, url);
   xhr.setRequestHeader('Content-type', contentType);
-  xhr.send(typeof data !== 'undefined' ? data : '');
+  xhr.send(data);
   xhr.onload = response; // callback function
 }
 
-function request(buttonName, buttonValue) {
-  if (buttonName === 'request') {
-    var url = '../../src/request_authentication_token.php',
-      contentType = 'application/x-www-form-urlencoded';
-      data = ''; // data = 'client_credentials=' + inputs
-  } else if (buttonName === 'validate') {
-    var url = '../../src/validate_authentication_token.php',
-      contentType = 'application/x-www-form-urlencoded';
-  } else if (buttonName === 'redirect') {
-    var url = '../../src/redirect_authentication_token.php',
-      contentType = 'application/x-www-form-urlencoded';
-  } else if (buttonName === 'revoke') {
-    var url = '../../src/revoke_authentication_token.php',
-      contentType = 'application/x-www-form-urlencoded';
-  } else {
+function request(action, method) {
+  const actions = ['request', 'validate', 'redirect', 'revoke'];
+
+  if (actions.indexOf(action) === -1) {
     error('Invalid request.');
     return;
   }
 
-  ajax(buttonValue, url, contentType, data);
+  var url = '../../src/' + action + '_authentication_token.php',
+    contentType = 'application/x-www-form-urlencoded',
+    data = typeof encodedCredentials !== 'undefined' ? 'client_credentials=' + encodedCredentials : '';
+
+  ajax(method, url, contentType, data);
 }
 
 function response() {
@@ -50,6 +43,9 @@ function error(error) {
 
 for (let button of buttons) {
   button.addEventListener('click', () => {
-    request(button.name, button.value);
+    var action = button.name,
+      method = button.value;
+
+    request(action, method);
   });
 }
