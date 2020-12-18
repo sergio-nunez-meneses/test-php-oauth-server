@@ -37,17 +37,23 @@ if ($uri[1] === 'validate') {
     exit("403: Unauthorized.\n");
   }
 
-  if (!isset($_GET['authentication_token'])) {
-    exit("Authentication token not found.\n");
-  }
-
-  $validate_authentication_token = CurlController::request('http://ser.local/auth/verify_token', $_GET['authentication_token']);
+  $encrypted_authentication_token = $response->get_token_from_header();
+  $validate_authentication_token = CurlController::request('http://ser.local/auth/verify_token', $encrypted_authentication_token);
 
   if (!$validate_authentication_token) {
-    exit("Authentication token couldn't be validated.\n");
+    $response = [
+      'error' => true,
+      'error_message' => "Authentication token couldn't be validated.\n"
+    ];
+
+    exit(json_encode($response));
   }
 
-  echo "Welcome back, whatever your name is.\nIf you can see this message, it means that you really have access.";
+  $response = [
+    'success_message' => "Welcome back, whatever your name is.\nIf you can see this message, it means that you really have access."
+  ];
+
+  echo json_encode($response);
 } else {
   exit("Page not found.\n");
 }

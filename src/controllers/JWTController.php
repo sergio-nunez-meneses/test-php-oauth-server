@@ -47,7 +47,8 @@ class JWTController
     // jwt validation from https://tools.ietf.org/html/rfc7519#section-7.2 , plus public key decryption
 
     $num_args = func_num_args();
-    $arg = func_get_arg(0);
+    // $arg = func_get_arg(0);
+    $arg = (sizeof(func_get_args()) > 0) ? func_get_args()[0] : ''; // used in pre-production
     $valid_uris = ['request_token', 'access_token', 'refresh_token', 'revoke_token'];
 
     if ($num_args === 1)

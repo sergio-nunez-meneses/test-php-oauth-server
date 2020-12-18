@@ -27,7 +27,7 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
       }
       ?>
 
-      <div class="container w-25 my-5">
+      <div class="container w-50 my-5">
         <div class="d-flex flex-column justify-content-center">
           <button class="w-100 my-1 btn btn-lg bg-primary text-white" type="button" name="request" value="POST">
             Request Authentication Token
@@ -35,8 +35,11 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
           <button class="w-100 my-1 btn btn-lg bg-success text-white" type="button" name="validate" value="GET">
             Validate Authentication Token
           </button>
+          <button class="w-100 my-1 btn btn-lg bg-warning text-white" type="button" name="redirect" value="GET">
+            Redirect With Authentication Token
+          </button>
           <button class="w-100 my-1 btn btn-lg bg-danger text-white" type="button" name="revoke" value="GET">
-            Revoke Authentication Token
+            Revoke Authentication and Authorization Tokens
           </button>
         </div>
       </div>

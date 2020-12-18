@@ -21,6 +21,9 @@ function request(buttonName, buttonValue) {
   } else if (buttonName === 'validate') {
     var url = '../../src/validate_authentication_token.php',
       contentType = 'application/x-www-form-urlencoded';
+  } else if (buttonName === 'redirect') {
+    var url = '../../src/redirect_authentication_token.php',
+      contentType = 'application/x-www-form-urlencoded';
   } else if (buttonName === 'revoke') {
     var url = '../../src/revoke_authentication_token.php',
       contentType = 'application/x-www-form-urlencoded';
