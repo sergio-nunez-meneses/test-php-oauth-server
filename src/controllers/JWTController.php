@@ -1,15 +1,22 @@
 <?php
 require './tools/constants.php';
+// define an constant array of supported encryption algorithms
+// create a method that returns a sign algorithm based on input
 
 class JWTController
 {
   // jwt generation, encryption, decryption and validation for performing oauth 2.0 client credentials grant type-ish (see https://tools.ietf.org/html/rfc6749#section-4.4)
 
-  public function generate($user_id, $algorithm = 'HS256')
+  public function generate($user_id, $algorithm = 'HS256') // 'RS256'
   {
     // jwt creation from https://tools.ietf.org/html/rfc7519#section-7.1 , plus private key encryption
 
     $user_id = filter_var($user_id, FILTER_SANITIZE_STRING);
+
+    if (strtolower($algorithm) !== 'hs256')
+    {
+      return $this->response_handler('error', 'Invalid or unsupported algorithm.');
+    }
 
     $headers = $this->create_header($algorithm);
     $payload = $this->create_payload($user_id, 'some_scope');
@@ -20,23 +27,45 @@ class JWTController
     $sign_input = implode('.', $token);
 
     $private_key = $this->get_private_key();
-    $signature = $this->create_signature($sign_input, $private_key, $algorithm);
-    $token[] = $this->base64_encode_url($signature);
 
-    $token = implode('.', $token);
-    $encrypted_token = $this->encrypt_token($token);
-
-    if (empty($encrypted_token))
+    if (!$private_key)
     {
-      throw new \Exception("Token couldn't be encrypted.");
+      return $this->response_handler('error', 'Invalid private key.');
     }
 
-    // store jwt in database
-    $new_token = new JWTModel();
+    $signature = $this->create_signature($sign_input, $private_key, $algorithm);
 
-    if (!$new_token->create('authentication', $payload['jti'], $encrypted_token, $user_id))
+    if (!$signature)
     {
-      throw new \Exception("Token couldn't be stored in database.");
+      return $this->response_handler('error', "Token couldn't be signed.");
+    }
+
+    $token[] = $this->base64_encode_url($signature);
+    $token = implode('.', $token);
+    // $encrypted_token = $this->encrypt_token($token);
+    $encrypted_token = $this->encrypt_token($token, $private_key);
+
+    if (!$encrypted_token)
+    {
+      return $this->response_handler('error', openssl_error_string());
+    }
+
+    // if (empty($encrypted_token))
+    // {
+    //   throw new \Exception("Token couldn't be encrypted.");
+    // }
+    //
+    // store jwt in database
+    // $new_token = new JWTModel();
+    //
+    // if (!$new_token->create('authentication', $payload['jti'], $encrypted_token, $user_id))
+    // {
+    //   throw new \Exception("Token couldn't be stored in database.");
+    // }
+
+    if (!(new JWTModel)->create('authentication', $payload['jti'], $encrypted_token, $user_id))
+    {
+      return $this->response_handler('error', "Token couldn't be stored in database.");
     }
 
     return $encrypted_token;
@@ -387,15 +416,17 @@ class JWTController
   {
     // jose header format from https://tools.ietf.org/html/rfc7519#section-5
 
-    if (strtolower($algorithm) !== 'hs256')
-    {
-      throw new \Exception('Invalid or unsupported algorithm.');
-    }
+    // if (strtolower($algorithm) !== 'hs256')
+    // {
+    //   throw new \Exception('Invalid or unsupported algorithm.');
+    // }
 
-    return [
+    $header = [
       'typ' => 'JWT',
       'alg' => $algorithm
     ];
+
+    return $header;
   }
 
   private function create_payload($user_id, $scope = null)
@@ -421,7 +452,7 @@ class JWTController
 
   private function create_signature($input, $key, $algorithm)
   {
-    if (strtolower($algorithm) === 'hs256')
+    if (strtolower($algorithm) === 'hs256') // 'rs256'
     {
       $algorithm = OPENSSL_ALGO_SHA256;
     }
@@ -434,6 +465,8 @@ class JWTController
     {
       throw new \Exception("Token couldn't be signed.");
     }
+
+    // openssl_sign($input, $signature, $key, $algorithm);
 
     return $signature;
   }
@@ -455,7 +488,11 @@ class JWTController
   // method not working yet
   public function get_origin_from_header()
   {
-    if (array_key_exists('HTTP_ORIGIN', $_SERVER))
+    if (array_key_exists('HTTP_HOST', $_SERVER))
+    {
+      $origin = $_SERVER['HTTP_HOST'];
+    }
+    elseif (array_key_exists('HTTP_ORIGIN', $_SERVER))
     {
       $origin = $_SERVER['HTTP_ORIGIN'];
     }
@@ -559,10 +596,12 @@ class JWTController
   {
     $private_key = file_get_contents('./keys/private.key');
 
-    if ($private_key)
-    {
-      return $private_key;
-    }
+    // if ($private_key)
+    // {
+    //   return $private_key;
+    // }
+
+    return $private_key;
   }
 
   private function generate_private_key()
@@ -601,11 +640,11 @@ class JWTController
     return $public_key;
   }
 
-  private function encrypt_token($input)
+  private function encrypt_token($input, $private_key)
   {
     // for a 2048 bit key
     $input = str_split($input, 200);
-    $private_key = $this->get_private_key();
+    // $private_key = $this->get_private_key();
     $encrypted_token = '';
 
     foreach ($input as $chunk)
@@ -615,7 +654,8 @@ class JWTController
       // using OPENSSL_PKCS1_PADDING as padding
       if (!openssl_private_encrypt($chunk, $encrypted_chunk, $private_key, OPENSSL_PKCS1_PADDING))
       {
-        throw new \Exception(openssl_error_string());
+        // throw new \Exception(openssl_error_string());
+        return false;
       }
 
       $encrypted_token .= $encrypted_chunk;
@@ -668,5 +708,15 @@ class JWTController
   {
     // if (!base64_decode($input)) throw new \Exception('Error decoding input.');
     return base64_decode(str_pad(strtr($string, '-_', '+/'), strlen($string) % 4, '=', STR_PAD_RIGHT));
+  }
+
+  private function response_handler($type, $value)
+  {
+    $response = [
+      'response_type' => $type,
+      'response_value' => $value
+    ];
+
+    return $response;
   }
 }
