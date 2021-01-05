@@ -80,40 +80,74 @@ class JWTController
     $arg = (sizeof(func_get_args()) > 0) ? func_get_args()[0] : ''; // used in pre-production
     $valid_uris = ['request_token', 'access_token', 'refresh_token', 'revoke_token'];
 
-    if ($num_args === 1)
+    // if ($num_args === 1)
+    // {
+    //   if (in_array($arg, $valid_uris))
+    //   {
+    //     $uri = $arg;
+    //     $encrypted_token = $this->get_token_from_header()['token'];
+    //     $has_token = false;
+    //   }
+    //   else
+    //   {
+    //     $encrypted_token = $arg;
+    //   }
+    // }
+    // else
+    // {
+      // $encrypted_token = $this->get_token_from_header()['token'];
+    //   $has_token = false;
+    // }
+
+    if ($num_args === 0 || $num_args === 1 && in_array($arg, $valid_uris))
     {
-      if (in_array($arg, $valid_uris))
-      {
-        $uri = $arg;
-        $encrypted_token = $this->get_token_from_header()['token'];
-        $has_token = false;
-      }
-      else
-      {
-        $encrypted_token = $arg;
-      }
-    }
-    else
-    {
-      $encrypted_token = $this->get_token_from_header()['token'];
+      $uri = $arg;
       $has_token = false;
+      $encrypted_token = $this->get_token_from_header();
+
+      if (!is_array($encrypted_token))
+      {
+        return $this->response_handler('error', $encrypted_token);
+      }
+
+      $encrypted_token = $encrypted_token['response_value']['token'];
     }
-
-    $token = $this->decrypt_token($encrypted_token);
-
-    if (empty($token))
+    elseif ($num_args === 1 && !in_array($arg, $valid_uris))
     {
-      throw new \Exception("Token couldn't be decrypted.");
+      $encrypted_token = $arg;
     }
+
+    $private_key = $this->get_private_key();
+
+    if (!$private_key)
+    {
+      return $this->response_handler('error', 'Invalid private key.');
+    }
+
+    // $public_key
+
+    $token = $this->decrypt_token($encrypted_token, $private_key); // rename variable to $decrypted_token
+
+    if (!$token)
+    {
+      return $this->response_handler('error', openssl_error_string());
+    }
+
+    // if (empty($token))
+    // {
+    //   throw new \Exception("Token couldn't be decrypted.");
+    // }
 
     if (!stristr($token, '.'))
     {
-      throw new \Exception("Token doesn't contain expected delimiter.");
+      // throw new \Exception("Token doesn't contain expected delimiter.");
+      return $this->response_handler('error', "Token doesn't contain expected delimiter.");
     }
 
     if (count(explode('.', $token)) !== 3)
     {
-      throw new \Exception("Token doesn't contain expected structure.");
+      // throw new \Exception("Token doesn't contain expected structure.");
+      return $this->response_handler('error', "Token doesn't contain expected structure.");
     }
 
     // split and decode token structure
@@ -123,7 +157,8 @@ class JWTController
 
     if ($decoded_payload['iss'] !== ISSUER)
     {
-      throw new \Exception("Token doesn't contain expected issuer.");
+      // throw new \Exception("Token doesn't contain expected issuer.");
+      return $this->response_handler('error', "Token doesn't contain expected issuer.");
     }
 
     $token_type = 'authentication';
@@ -133,19 +168,22 @@ class JWTController
 
     if (!$stored_token)
     {
-      throw new \Exception('Invalid token ID.');
+      // throw new \Exception('Invalid token ID.');
+      return $this->response_handler('error', 'Invalid token ID.');
     }
 
     $jwt = filter_var($encrypted_token, FILTER_SANITIZE_STRING);
 
     if ($token_model->find_by_token('blacklist', $jwt))
     {
-      throw new \Exception('Token was found in the blacklist.');
+      // throw new \Exception('Token was found in the blacklist.');
+      return $this->response_handler('error', 'Token was found in the blacklist.');
     }
 
     if (!$token_model->find_by_token($token_type, $jwt))
     {
-      throw new \Exception('Invalid token.');
+      // throw new \Exception('Invalid token.');
+      return $this->response_handler('error', 'Invalid token.');
     }
 
     if (isset($has_token) && !$has_token)
@@ -154,7 +192,8 @@ class JWTController
 
       if (!$token_model->find_by_user($token_type, $user_id))
       {
-        throw new \Exception('Invalid user ID.');
+        // throw new \Exception('Invalid user ID.');
+        return $this->response_handler('error', 'Invalid user ID.');
       }
     }
 
@@ -163,22 +202,27 @@ class JWTController
     // this condition is not working: $stored_token['created_at'] > $now
     if ($decoded_payload['iat'] > time())
     {
-      throw new \Exception('Token was issued in the future.');
+      // throw new \Exception('Token was issued in the future.');
+      return $this->response_handler('error', 'Token was issued in the future.');
     }
 
     if ($decoded_payload['exp'] < time() || $stored_token['expires_at'] < $now)
     {
-      if ($uri === 'refresh_token')
+      if (isset($uri) && $uri === 'refresh_token')
       {
         if (!$this->refresh_token())
         {
-          throw new \Exception("Token couldn't be refreshed.");
+          // throw new \Exception("Token couldn't be refreshed.");
+          return $this->response_handler('error', "Token couldn't be refreshed.");
         }
       }
 
-      if (!$this->revoke_tokens($token_model, $stored_token['jti'], $stored_token['token'], $stored_token['users_id']))
+      $revoked_tokens = $this->revoke_tokens($token_model, $stored_token['jti'], $stored_token['token'], $stored_token['users_id']);
+
+      if (!$revoked_tokens)
       {
-        throw new \Exception("Tokens couldn't be revoked and deleted from database.");
+        // throw new \Exception("Tokens couldn't be revoked and deleted from database.");
+        return $this->response_handler('error', $revoked_tokens);
       }
 
       // if (!$token_model->add_to_blacklist($stored_token['jti'], $stored_token['token'], $token_type, $stored_token['users_id']))
@@ -192,16 +236,18 @@ class JWTController
       // }
 
       // after deleting the token, no request works
-      throw new \Exception('Authentication token expired.');
+      // throw new \Exception('Authentication token expired.');
+      return $this->response_handler('error', 'Authentication token expired. Please, login again.');
     }
 
-    $private_key = $this->get_private_key();
+    // $private_key = $this->get_private_key();
     $public_key = $this->get_public_key($private_key);
     $signature = $this->verify_signature("$header.$payload", $this->base64_decode_url($signature), $public_key['key'], $decoded_header['alg']);
 
     if (!$signature)
     {
-      throw new \Exception("Token's signature couldn't be verified.");
+      // throw new \Exception("Token's signature couldn't be verified.");
+      return $this->response_handler('error', "Token's signature couldn't be verified.");
     }
 
     return true;
@@ -314,10 +360,17 @@ class JWTController
   {
     $stored_token = $this->get_token_from_header();
 
-    if (!$stored_token)
+    if (!is_array($stored_token))
     {
-      throw new \Exception("Token wasn't found neither in header, nor in database.");
+      return $this->response_handler('error', $stored_token);
     }
+
+    $stored_token = $stored_token['response_value'];
+
+    // if (!$stored_token)
+    // {
+    //   throw new \Exception("Token wasn't found neither in header, nor in database.");
+    // }
 
     $new_token = $this->generate($stored_token['users_id']);
 
@@ -338,6 +391,13 @@ class JWTController
   public function revoke_token()
   {
     $stored_token = $this->get_token_from_header();
+
+    if (!is_array($stored_token))
+    {
+      return $this->response_handler('error', $stored_token);
+    }
+
+    $stored_token = $stored_token['response_value'];
     $token_model = new JWTModel();
 
     if (!$stored_token)
@@ -368,22 +428,26 @@ class JWTController
   {
     if (!$token_model->add_to_blacklist($jti, $token, 'authentication', $user_id))
     {
-      throw new \Exception("Authentication token couldn't be added to blacklist.");
+      // throw new \Exception("Authentication token couldn't be added to blacklist.");
+      return "Authentication token couldn't be added to blacklist.";
     }
 
     if (!$token_model->add_to_blacklist($jti, $token, 'authorization', $user_id))
     {
-      throw new \Exception("Authorization token couldn't be added to blacklist.");
+      // throw new \Exception("Authorization token couldn't be added to blacklist.");
+      return "Authorization token couldn't be added to blacklist.";
     }
 
     if (!$token_model->delete('authentication', $jti))
     {
-      throw new \Exception("Authentication token couldn't be revoked and deleted from database.");
+      // throw new \Exception("Authentication token couldn't be revoked and deleted from database.");
+      return "Authentication token couldn't be revoked and deleted from database.";
     }
 
     if (!$token_model->delete('authorization', $jti))
     {
-      throw new \Exception("Authorization token couldn't be revoked and deleted from database.");
+      // throw new \Exception("Authorization token couldn't be revoked and deleted from database.");
+      return "Authorization token couldn't be revoked and deleted from database.";
     }
 
     return true;
@@ -533,41 +597,84 @@ class JWTController
     }
     else
     {
-      throw new \Exception('Unauthorized.');
+      // throw new \Exception('Unauthorized.');
+      return 'Unauthorized';
     }
 
     $token_type = explode(' ', $authorization_header)[0];
 
     if (!preg_match("/$token_type\s(\S+)/", $authorization_header, $matches))
     {
-      throw new \Exception("Token type wasn't found in header.");
+      // throw new \Exception("Token type wasn't found in header.");
+      return "Token type wasn't found in header.";
     }
 
     if (strpos($matches[0], $token_type))
     {
-      throw new \Exception('Invalid token type.');
+      // throw new \Exception('Invalid token type.');
+      return 'Invalid token type.';
     }
 
-    if (!isset($matches[1]))
+    if (!isset($matches[1]) || empty($matches[1]))
     {
-      throw new \Exception("Token wasn't found in header.");
+      // throw new \Exception("Token wasn't found in header.");
+      return "Token wasn't found in header.";
     }
 
-    if ($token_type === 'Basic')
+    if (strtolower($token_type) === 'basic')
     {
-      return $matches[1];
-    }
-    elseif ($token_type === 'Bearer')
-    {
-      // if request === 'jwt_request'
+      $response = [
+        'response_type' => 'client_credentials',
+        'response_value' => $matches[1]
+      ];
 
+      return $response;
+    }
+    elseif (strtolower($token_type) === 'bearer')
+    {
       $token = filter_var($matches[1], FILTER_SANITIZE_STRING);
       $stored_token = (new JWTModel)->find_by_token('authentication', $token);
 
-      return $stored_token;
+      $response = [
+        'response_type' => 'authentication_token',
+        'response_value' => $stored_token
+      ];
 
-      // elseif request === 'access_token'
+      return $response;
     }
+
+    // $token_type = explode(' ', $authorization_header)[0];
+    //
+    // if (!preg_match("/$token_type\s(\S+)/", $authorization_header, $matches))
+    // {
+    //   throw new \Exception("Token type wasn't found in header.");
+    // }
+    //
+    // if (strpos($matches[0], $token_type))
+    // {
+    //   throw new \Exception('Invalid token type.');
+    // }
+    //
+    // if (!isset($matches[1]))
+    // {
+    //   throw new \Exception("Token wasn't found in header.");
+    // }
+    //
+    // if ($token_type === 'Basic')
+    // {
+    //   return $matches[1];
+    // }
+    // elseif ($token_type === 'Bearer')
+    // {
+    //   // if request === 'jwt_request'
+    //
+    //   $token = filter_var($matches[1], FILTER_SANITIZE_STRING);
+    //   $stored_token = (new JWTModel)->find_by_token('authentication', $token);
+    //
+    //   return $stored_token;
+    //
+    //   // elseif request === 'access_token'
+    // }
   }
 
   private function generate_jti($lenght = 40)
@@ -664,11 +771,11 @@ class JWTController
     return base64_encode($encrypted_token);
   }
 
-  public function decrypt_token($token)
+  public function decrypt_token($token, $private_key) // decrypt_token($token, $public_key)
   {
     // decode must be done before spliting
     $token = str_split(base64_decode($token), 256);
-    $private_key = $this->get_private_key();
+    // $private_key = $this->get_private_key();
     $public_key = $this->get_public_key($private_key);
     $decrypted_token = '';
 
@@ -678,7 +785,8 @@ class JWTController
 
       if (!openssl_public_decrypt($chunk, $decrypted_chunk, $public_key['key'], OPENSSL_PKCS1_PADDING))
       {
-        throw new \Exception(openssl_error_string());
+        // throw new \Exception(openssl_error_string());
+        return false;
       }
 
       $decrypted_token .= $decrypted_chunk;

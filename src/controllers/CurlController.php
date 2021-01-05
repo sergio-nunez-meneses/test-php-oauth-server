@@ -95,6 +95,14 @@ class CurlController
     $token = new JWTController();
     $client_credentials = $token->get_token_from_header();
 
+    if (!is_array($client_credentials))
+    {
+      echo self::error_handler($client_credentials);
+      return;
+    }
+
+    $client_credentials = $client_credentials['response_value'];
+
     list($username, $password) = explode(':', base64_decode($client_credentials));
     $user = UserController::verify($username, $password);
 
@@ -108,20 +116,18 @@ class CurlController
 
     if ($stored_token)
     {
-      // $verified_token = $token->verify($stored_token['token'];
-      // if ($verified_token) echo json_encode($verified_token);
+      $verified_token = $token->verify($stored_token['token']);
 
-      if ($token->verify($stored_token['token']))
+      if ($verified_token === true)
       {
         echo $stored_token['token'];
         return;
       }
-      // this else condition is not necessary
-      // else
-      // {
-      //   echo 'Token revoked.';
-      //   return;
-      // }
+      else
+      {
+        echo $verified_token;
+        return;
+      }
     }
 
     $generated_token = $token->generate($user['id']);
@@ -132,7 +138,6 @@ class CurlController
     //   return;
     // }
 
-    // it is absolutely NOT NECESSARY to check for an error everytime, this will be done client side
     echo $generated_token;
     return;
   }

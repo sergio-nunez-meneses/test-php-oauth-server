@@ -11,7 +11,7 @@ if (isset($_COOKIE['authentication_cookie'])) {
 $authentication_token = CurlController::request('http://ser.local/auth/request_token', 'sergio', '123456789');
 
 // return error and stop script
-if (substr($authentication_token, 0, 1) === '{') {
+if (substr($authentication_token, 0, 1) === '{' || substr($authentication_token, 0, 1) === '<') {
   echo $authentication_token;
   exit();
 }
