@@ -9,25 +9,19 @@ if (isset($_COOKIE['authentication_cookie'])) {
 
 // client: login and request authentication token
 $authentication_token = CurlController::request('http://ser.local/auth/request_token', 'sergio', '123456789');
-// echo $authentication_token;
 
-if (isset($authentication_token['response_type']) && $authentication_token['response_type'] === 'error') {
-  echo json_encode($authentication_token);
+// return error and stop script
+if (substr($authentication_token, 0, 1) === '{') {
+  echo $authentication_token;
   exit();
 }
 
-// if (empty($authentication_token)) {
-//   exit("Authentication token couldn't be generated.\n");
-// }
-
+// set cookie and return authentication token
 date_default_timezone_set('Europe/Paris');
-
 $exp = time() + (3 * 60 * 1 * 1);
 $cookie_name = 'authentication_cookie';
 $cookie_value = $authentication_token;
 
-// if (json_decode($authentication_token)['response_type'] === 'authentication_token') setcookie
-// set cookie and return authentication token
 if (setcookie($cookie_name, $cookie_value, $exp, '/')) {
   echo "Authentication token: $authentication_token\n";
   echo 'Expires at: ' . date('m/d/Y H:i:s', $exp) . "\n";

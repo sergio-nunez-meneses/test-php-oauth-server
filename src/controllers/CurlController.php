@@ -48,7 +48,8 @@ class CurlController
     }
     else
     {
-      throw new \Exception('Invalid request.');
+      // throw new \Exception('Invalid request.');
+      return self::error_handler('Invalid request.');
     }
 
     $url = filter_var($args[0], FILTER_VALIDATE_URL, FILTER_FLAG_PATH_REQUIRED);
@@ -64,7 +65,8 @@ class CurlController
 
       if ($ch === false)
       {
-        throw new \Exception('Failed to initialize request.');
+        return self::error_handler('Failed to initialize request.');
+        // throw new \Exception('Failed to initialize request.');
       }
 
       curl_setopt_array($ch, $curl_opts);
@@ -72,7 +74,8 @@ class CurlController
 
       if ($response === false)
       {
-        throw new Exception(curl_error($ch), curl_errno($ch));
+        return self::error_handler('Curl failed with error ' . curl_errno($ch) . ': ' . curl_strerror(curl_errno($ch)));
+        // throw new Exception(curl_error($ch), curl_errno($ch));
       }
 
       curl_close($ch);
@@ -186,5 +189,15 @@ class CurlController
   public static function revoke_token_request()
   {
     echo (new JWTController)->revoke_token();
+  }
+
+  private static function error_handler($value)
+  {
+    $response = [
+      'response_type' => 'error',
+      'response_value' => $value
+    ];
+
+    return json_encode($response);
   }
 }

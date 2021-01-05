@@ -717,6 +717,6 @@ class JWTController
       'response_value' => $value
     ];
 
-    return $response;
+    return json_encode($response);
   }
 }

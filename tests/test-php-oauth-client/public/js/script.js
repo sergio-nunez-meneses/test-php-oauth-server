@@ -31,8 +31,6 @@ function request(action, method) {
 function response() {
   if (this.responseText.charAt(0) === '<') {
     console.log(this.responseText);
-    alert(this.responseText);
-
     return;
   }
 
@@ -40,15 +38,13 @@ function response() {
     let response = JSON.parse(this.responseText);
 
     if (response.response_type === 'error') {
-      console.log(response.response_value);
       alert(response.response_value);
-
+      console.log(response.response_value);
       return;
     }
   }
 
   console.log(this.responseText);
-  alert(this.responseText);
 }
 
 function error(error) {

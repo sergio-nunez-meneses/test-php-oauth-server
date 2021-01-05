@@ -4,28 +4,28 @@ class UserController
 {
 
   // method used for running user_requests_token.php test
-  public static function check_credentials($username, $password)
-  {
-    $username = filter_var($username, FILTER_SANITIZE_STRING);
-    $password = filter_var($password, FILTER_DEFAULT);
-    $user = (new UserModel)->find_by_name($username);
-
-    if (empty($user))
-    {
-      echo "\nUser doesn't exist.";
-      return;
-    }
-
-    $stored_password = $user['password'];
-
-    if (!password_verify($password, $stored_password))
-    {
-      echo "\nPasswords don't match.";
-      return;
-    }
-
-    return $user;
-  }
+  // public static function check_credentials($username, $password)
+  // {
+  //   $username = filter_var($username, FILTER_SANITIZE_STRING);
+  //   $password = filter_var($password, FILTER_DEFAULT);
+  //   $user = (new UserModel)->find_by_name($username);
+  //
+  //   if (empty($user))
+  //   {
+  //     echo "\nUser doesn't exist.";
+  //     return;
+  //   }
+  //
+  //   $stored_password = $user['password'];
+  //
+  //   if (!password_verify($password, $stored_password))
+  //   {
+  //     echo "\nPasswords don't match.";
+  //     return;
+  //   }
+  //
+  //   return $user;
+  // }
 
   public static function logout()
   {
@@ -53,8 +53,8 @@ class UserController
 
     if ($error)
     {
-      echo self::response_handler('error', $error_message);
-      return;
+      return self::response_handler('error', $error_message);
+      // return;
     }
 
     $user = (new UserModel)->find_by_name($username);
@@ -62,16 +62,16 @@ class UserController
     // $user returns false on failure
     if (empty($user))
     {
-      echo self::response_handler('error', "User doesn't exist");
-      return;
+      return self::response_handler('error', "User doesn't exist");
+      // return;
     }
 
     $stored_password = $user['password'];
 
     if (!password_verify($password, $stored_password))
     {
-      echo self::response_handler('error', "Passwords don't match.");
-      return;
+      return self::response_handler('error', "Passwords don't match.");
+      // return;
     }
 
     return $user;
