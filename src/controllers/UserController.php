@@ -27,11 +27,6 @@ class UserController
   //   return $user;
   // }
 
-  public static function logout()
-  {
-    return (new JWTController)->revoke();
-  }
-
   public static function verify($username, $password)
   {
     $error = false;
@@ -53,7 +48,8 @@ class UserController
 
     if ($error)
     {
-      return self::response_handler('error', $error_message);
+      return $error_message;
+      // return self::response_handler('error', $error_message);
       // return;
     }
 
@@ -62,7 +58,8 @@ class UserController
     // $user returns false on failure
     if (empty($user))
     {
-      return self::response_handler('error', "User doesn't exist");
+      return "User doesn't exist";
+      // return self::response_handler('error', "User doesn't exist");
       // return;
     }
 
@@ -70,22 +67,28 @@ class UserController
 
     if (!password_verify($password, $stored_password))
     {
-      return self::response_handler('error', "Passwords don't match.");
+      return "Passwords don't match.";
+      // return self::response_handler('error', "Passwords don't match.");
       // return;
     }
 
     return $user;
   }
 
-  private static function response_handler($type, $value)
+  public static function logout()
   {
-    $response = [
-      'response_type' => $type,
-      'response_value' => $value
-    ];
-
-    return $response;
+    return (new JWTController)->revoke();
   }
+
+  // private static function response_handler($type, $value)
+  // {
+  //   $response = [
+  //     'response_type' => $type,
+  //     'response_value' => $value
+  //   ];
+  //
+  //   return $response;
+  // }
 
   // public static function login_form()
   // {

@@ -101,14 +101,18 @@ class CurlController
       return;
     }
 
-    $client_credentials = $client_credentials['response_value'];
-
-    list($username, $password) = explode(':', base64_decode($client_credentials));
+    list($username, $password) = explode(':', base64_decode($client_credentials['response_value']));
     $user = UserController::verify($username, $password);
 
-    if (isset($user['response_type']) && $user['response_type'] === 'error')
+    // if (isset($user['response_type']) && $user['response_type'] === 'error')
+    // {
+    //   echo json_encode($user);
+    //   return;
+    // }
+
+    if (!is_array($user))
     {
-      echo json_encode($user);
+      echo self::error_handler($user);
       return;
     }
 
@@ -118,16 +122,25 @@ class CurlController
     {
       $verified_token = $token->verify($stored_token['token']);
 
-      if ($verified_token === true)
+      // if ($verified_token === true)
+      // {
+      //   echo $stored_token['token'];
+      //   return;
+      // }
+      // else
+      // {
+      //   echo $verified_token;
+      //   return;
+      // }
+
+      if (!is_array($verified_token))
       {
-        echo $stored_token['token'];
+        echo self::error_handler($verified_token);
         return;
       }
-      else
-      {
-        echo $verified_token;
-        return;
-      }
+
+      echo $stored_token['token'];
+      return;
     }
 
     $generated_token = $token->generate($user['id']);
@@ -138,7 +151,12 @@ class CurlController
     //   return;
     // }
 
-    echo $generated_token;
+    if (!is_array($generated_token))
+    {
+      echo self::error_handler($generated_token);
+    }
+
+    echo $generated_token['response_value'];
     return;
   }
 
