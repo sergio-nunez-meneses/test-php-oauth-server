@@ -69,30 +69,75 @@ if ($uri[1] === 'validate') {
 
 } elseif ($uri[1] === 'service') {
   // client: access service
-  $token = new ReponseController();
+  // $token = new ReponseController();
+  //
+  // if (!$token->get_origin_from_header()) {
+  //   exit("403: Unauthorized.\n");
+  // }
+  //
+  // $encrypted_authentication_token = $token->get_token_from_header();
 
-  if (!$token->get_origin_from_header()) {
-    exit("403: Unauthorized.\n");
-  }
+  $response = new ReponseController();
+  $origin = $response->get_origin_from_header();
 
-  $encrypted_authentication_token = $token->get_token_from_header();
-
-  $validate_authentication_token = CurlController::request('http://ser.local/auth/verify_token', $encrypted_authentication_token);
-
-  if (!$validate_authentication_token) {
-    $response = [
-      'error' => true,
-      'error_message' => "Authentication token couldn't be validated.\n"
+  if ($origin !== true) {
+    $error = [
+      'response_type' => 'error',
+      'response_value' => $origin
     ];
 
-    exit(json_encode($response));
+    echo json_encode($error);
+    exit();
   }
 
-  $response = [
-    'success_message' => "Welcome back, whatever your name is.\nIf you can see this message, it means that you really have access."
-  ];
+  $encrypted_authentication_token = $response->get_token_from_header();
 
-  echo json_encode($response);
+  if (!is_array($encrypted_authentication_token))
+  {
+    $error = [
+      'response_type' => 'error',
+      'response_value' => $encrypted_authentication_token
+    ];
+
+    echo json_encode($error);
+    exit();
+  }
+
+  $validate_authentication_token = CurlController::request('http://ser.local/auth/verify_token', $encrypted_authentication_token['response_value']);
+
+  // if (!$validate_authentication_token) {
+  //   $response = [
+  //     'error' => true,
+  //     'error_message' => "Authentication token couldn't be validated.\n"
+  //   ];
+  //
+  //   exit(json_encode($response));
+  // }
+
+  // return error and stop script
+  if (substr($validate_authentication_token, 0, 1) === '{' || substr($validate_authentication_token, 0, 1) === '<') {
+    echo $validate_authentication_token;
+    exit();
+  }
+
+  // if (!is_array($validate_authentication_token))
+  // {
+  //   $error = [
+  //     'response_type' => 'error',
+  //     'response_value' => $validate_authentication_token
+  //   ];
+  //
+  //   echo json_encode($error);
+  //   exit();
+  // }
+
+  // $response = [
+  //   'success_message' => "Welcome back, whatever your name is.\nIf you can see this message, it means that you really have access."
+  // ];
+  //
+  // echo json_encode($response);
+
+  echo "Welcome back, whatever your name is.\nIf you can see this message, it means that you really have access.";
 } else {
   exit("Page not found.\n");
 }

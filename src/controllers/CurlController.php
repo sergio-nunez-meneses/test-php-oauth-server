@@ -162,7 +162,7 @@ class CurlController
       return;
     }
 
-    echo $verified_token;
+    echo $verified_token['response_value'];
     return;
   }
 
