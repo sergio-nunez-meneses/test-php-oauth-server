@@ -75,10 +75,10 @@ class JWTController
   {
     // jwt validation from https://tools.ietf.org/html/rfc7519#section-7.2 , plus public key decryption
 
-    $num_args = func_num_args();
-    // $arg = func_get_arg(0);
-    $arg = (sizeof(func_get_args()) > 0) ? func_get_args()[0] : ''; // used in pre-production
     $valid_uris = ['request_token', 'access_token', 'refresh_token', 'revoke_token'];
+    $num_args = func_num_args();
+    $arg = (sizeof(func_get_args()) > 0) ? func_get_args()[0] : ''; // used in pre-production
+    // $arg = func_get_arg(0);
 
     // if ($num_args === 1)
     // {
@@ -124,9 +124,14 @@ class JWTController
       return $this->response_handler('error', 'Invalid private key.');
     }
 
-    // $public_key
+    $public_key = $this->get_public_key($private_key);
 
-    $token = $this->decrypt_token($encrypted_token, $private_key); // rename variable to $decrypted_token
+    if (!$public_key)
+    {
+      return $this->response_handler('error', "Public key couldn't be generated.");
+    }
+
+    $token = $this->decrypt_token($encrypted_token, $public_key['key']); // rename variable to $decrypted_token
 
     if (!$token)
     {
@@ -241,7 +246,7 @@ class JWTController
     }
 
     // $private_key = $this->get_private_key();
-    $public_key = $this->get_public_key($private_key);
+    // $public_key = $this->get_public_key($private_key);
     $signature = $this->verify_signature("$header.$payload", $this->base64_decode_url($signature), $public_key['key'], $decoded_header['alg']);
 
     if (!$signature)
@@ -356,6 +361,7 @@ class JWTController
     return $access_token;
   }
 
+  // this method must be changed
   public function refresh_token()
   {
     $stored_token = $this->get_token_from_header();
@@ -400,24 +406,27 @@ class JWTController
     $stored_token = $stored_token['response_value'];
     $token_model = new JWTModel();
 
-    if (!$stored_token)
-    {
-      throw new \Exception("Authentication token wasn't found neither in header, nor in database.");
-    }
+    // if (!$stored_token)
+    // {
+    //   throw new \Exception("Authentication token wasn't found neither in header, nor in database.");
+    // }
 
     if (!$token_model->delete('authentication', $stored_token['jti']))
     {
-      throw new \Exception("Authentication token couldn't be revoked and deleted from database.");
+      // throw new \Exception("Authentication token couldn't be revoked and deleted from database.");
+      return "Authentication token couldn't be revoked and deleted from database.";
     }
 
     if (!$token_model->find_by_jti('authorization', $stored_token['jti']))
     {
-      throw new \Exception("Authorization token has already been revoked or deleted from database.");
+      // throw new \Exception("Authorization token has already been revoked or deleted from database.");
+      return "Authorization token has already been revoked or deleted from database.";
     }
 
     if (!$token_model->delete('authorization', $stored_token['jti']))
     {
-      throw new \Exception("Authorization token couldn't be revoked and deleted from database.");
+      // throw new \Exception("Authorization token couldn't be revoked and deleted from database.");
+      return "Authorization token couldn't be revoked and deleted from database.";
     }
 
     return true;
@@ -525,12 +534,12 @@ class JWTController
       throw new \Exception('Invalid or unsupported sign algorithm.');
     }
 
-    if (!openssl_sign($input, $signature, $key, $algorithm))
-    {
-      throw new \Exception("Token couldn't be signed.");
-    }
+    // if (!openssl_sign($input, $signature, $key, $algorithm))
+    // {
+    //   throw new \Exception("Token couldn't be signed.");
+    // }
 
-    // openssl_sign($input, $signature, $key, $algorithm);
+    openssl_sign($input, $signature, $key, $algorithm);
 
     return $signature;
   }
@@ -545,6 +554,8 @@ class JWTController
     {
       throw new \Exception('Invalid or unsupported sign algorithm.');
     }
+
+    // openssl_verify($signature, $input, $key, $algorithm)
 
     return openssl_verify($signature, $input, $key, $algorithm);
   }
@@ -732,17 +743,17 @@ class JWTController
     // create public key from resource
     $res = openssl_pkey_get_private($private_key);
 
-    if (!$res)
-    {
-      throw new \Exception('Invalid private key.');
-    }
+    // if (!$res)
+    // {
+    //   throw new \Exception('Invalid private key.');
+    // }
 
     $public_key = openssl_pkey_get_details($res);
 
-    if (!$public_key)
-    {
-      throw new \Exception("Public key couldn't be generated.");
-    }
+    // if (!$public_key)
+    // {
+    //   throw new \Exception("Public key couldn't be generated.");
+    // }
 
     return $public_key;
   }
@@ -771,19 +782,19 @@ class JWTController
     return base64_encode($encrypted_token);
   }
 
-  public function decrypt_token($token, $private_key) // decrypt_token($token, $public_key)
+  public function decrypt_token($token, $public_key) // decrypt_token($token, $public_key)
   {
     // decode must be done before spliting
     $token = str_split(base64_decode($token), 256);
     // $private_key = $this->get_private_key();
-    $public_key = $this->get_public_key($private_key);
+    // $public_key = $this->get_public_key($private_key);
     $decrypted_token = '';
 
     foreach ($token as $chunk)
     {
       $decrypted_chunk = '';
 
-      if (!openssl_public_decrypt($chunk, $decrypted_chunk, $public_key['key'], OPENSSL_PKCS1_PADDING))
+      if (!openssl_public_decrypt($chunk, $decrypted_chunk, $public_key, OPENSSL_PKCS1_PADDING))
       {
         // throw new \Exception(openssl_error_string());
         return false;
