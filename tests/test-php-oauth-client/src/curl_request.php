@@ -60,34 +60,25 @@ class CurlController
 
   private static function execute_request($curl_opts, $url)
   {
-    try
+    $ch = curl_init($url);
+
+    if ($ch === false)
     {
-      $ch = curl_init($url);
-
-      if ($ch === false)
-      {
-        return self::error_handler('Failed to initialize request.');
-        // throw new \Exception('Failed to initialize request.');
-      }
-
-      curl_setopt_array($ch, $curl_opts);
-      $response = curl_exec($ch); // process request and return response
-
-      if ($response === false)
-      {
-        return self::error_handler('Curl failed with error ' . curl_errno($ch) . ': ' . curl_strerror(curl_errno($ch)));
-        // echo curl_error($ch) . "\n" . curl_strerror(curl_errno($ch));
-      }
-
-      curl_close($ch);
-      return $response;
+      return self::error_handler('Failed to initialize request.');
+      // throw new \Exception('Failed to initialize request.');
     }
-    catch (\Exception $e)
+
+    curl_setopt_array($ch, $curl_opts);
+    $response = curl_exec($ch); // process request and return response
+
+    if ($response === false)
     {
-      trigger_error(
-        sprintf('Curl failed with error #%d: %s', $e->getCode(), $e->getMessage()),
-      E_USER_ERROR);
+      return self::error_handler('Curl error ' . curl_errno($ch) . ': ' . curl_strerror(curl_errno($ch)));
+      // echo curl_error($ch) . "\n" . curl_strerror(curl_errno($ch));
     }
+
+    curl_close($ch);
+    return $response;
   }
 
   private static function error_handler($value)
