@@ -560,6 +560,42 @@ class JWTController
     return openssl_verify($signature, $input, $key, $algorithm);
   }
 
+  private function get_sign_algorithm($algorithm)
+  {
+    $algorithm = strtolower($algorithm);
+
+    if ($algorithm === 'hs256')
+    {
+      $algorithm = 'sha256'; // hash_hmac('sha256', $input, $key, true)
+    }
+    elseif ($algorithm === 'hs384')
+    {
+      $algorithm = 'sha384'; // hash_hmac('sha384', $input, $key, true)
+    }
+    elseif ($algorithm === 'hs512')
+    {
+      $algorithm = 'sha512'; // hash_hmac('sha512', $input, $key, true)
+    }
+    elseif ($algorithm === 'rs256')
+    {
+      $algorithm = OPENSSL_ALGO_SHA256;
+    }
+    elseif ($algorithm === 'RS384')
+    {
+      $algorithm = OPENSSL_ALGO_SHA384;
+    }
+    elseif ($algorithm === 'RS512')
+    {
+      $algorithm = OPENSSL_ALGO_SHA512;
+    }
+    else
+    {
+      return false; // 'Invalid or unsupported sign algorithm.'
+    }
+
+    return $algorithm;
+  }
+
   // method not working yet
   public function get_origin_from_header()
   {
@@ -581,7 +617,7 @@ class JWTController
     }
     else
     {
-      throw new \Exception("Request's origin domain wasn't found.");
+      return "Request's origin domain wasn't found.";
     }
 
     // if (!in_array($origin, AUTHORIZED_DOMAINS))
