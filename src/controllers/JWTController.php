@@ -292,24 +292,53 @@ class JWTController
   {
     // response format from https://tools.ietf.org/html/rfc6749#section-5.1
 
-    $access_token = $this->create_access_token($user_id);
-    $encoded_access_token = $this->encode_token_structure($access_token);
-    $encrypted_access_token = $this->encrypt_token($encoded_access_token);
+    $license_number = 'agent_' . $this->generate_jti() . $user_id;
+    $private_key = $this->get_private_key();
 
-    if (empty($encrypted_access_token))
+    if (!$private_key)
     {
-      throw new \Exception("Access token couldn't be encrypted.");
+      // return $this->response_handler('error', 'Invalid private key.');
+      return 'Invalid private key.';
+    }
+
+    $encrypted_license = $this->encrypt_token($license_number, $private_key);
+
+    if (!$encrypted_license)
+    {
+      return openssl_error_string();
+    }
+
+    $access_token = $this->create_access_token($encrypted_license);
+    $encoded_access_token = $this->encode_token_structure($access_token);
+    $encrypted_access_token = $this->encrypt_token($encoded_access_token, $private_key);
+
+    if (!$encrypted_access_token)
+    {
+      return openssl_error_string();
     }
 
     // store access token in database
-    $new_token = new JWTModel();
+    // $new_token = new JWTModel();
+    //
+    // if (!$new_token->create('authorization', $jti, $encrypted_access_token, $user_id))
+    // {
+    //   throw new \Exception("Token couldn't be stored in database.");
+    // }
 
-    if (!$new_token->create('authorization', $jti, $encrypted_access_token, $user_id))
+    if (!(new JWTModel)->create('authorization', $jti, $encrypted_access_token, $user_id))
     {
-      throw new \Exception("Token couldn't be stored in database.");
+      // throw new \Exception("Token couldn't be stored in database.");
+      return "Token couldn't be stored in database.";
     }
 
-    return $encrypted_access_token;
+    // return $encrypted_access_token;
+
+    $response = [
+      'response_type' => 'authorization_token',
+      'response_value' => $encrypted_access_token
+    ];
+
+    return $response;
   }
 
   public function verify_access_token()
@@ -492,24 +521,24 @@ class JWTController
     return true;
   }
 
-  private function create_access_token($user_id)
+  private function create_access_token($encrypted_license)
   {
     // response format from https://tools.ietf.org/html/rfc6749#section-5.1
 
-    $user_id = 'agent_' . $this->generate_jti() . $user_id;
-    $encrypted_user_id = $this->encrypt_token($user_id);
-
-    if (empty($encrypted_user_id))
-    {
-      throw new \Exception("User ID couldn't be encrypted.");
-    }
+    // $user_id = 'agent_' . $this->generate_jti() . $user_id;
+    // $encrypted_user_id = $this->encrypt_token($user_id);
+    //
+    // if (empty($encrypted_user_id))
+    // {
+    //   throw new \Exception("User ID couldn't be encrypted.");
+    // }
 
     $exp = time() + 2 * 60 * 1 * 1; // expiration time set to ten minutes from now
     $access_token = [
       'access_token' => $this->generate_jti(), // sign ?
       'token_type' => 'Bearer',
       'expires_in' => $exp,
-      'user_id' => $encrypted_user_id
+      'user_id' => $encrypted_license
     ];
 
     return $access_token;

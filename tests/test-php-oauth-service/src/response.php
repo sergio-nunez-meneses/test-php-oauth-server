@@ -1,5 +1,5 @@
 <?php
-require './tools/valid_users.php';
+require './tools/constants.php';
 
 class ReponseController
 {

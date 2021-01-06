@@ -169,7 +169,17 @@ class CurlController
   public static function access_token_request()
   {
     $token = new JWTController();
+    // $authentication_token = $token->get_token_from_header();
     $authentication_token = $token->get_token_from_header();
+
+    if (!is_array($authentication_token))
+    {
+      // return $this->response_handler('error', $encrypted_token);
+      echo self::error_handler($authentication_token);
+      return;
+    }
+
+    $authentication_token = $authentication_token['response_value'];
 
     $stored_authorization_token = (new JWTModel)->find_by_jti('authorization', $authentication_token['jti']);
 
@@ -189,13 +199,18 @@ class CurlController
 
     $generated_token = $token->generate_access_token($authentication_token['jti'], $authentication_token['users_id']);
 
-    if (empty($generated_token))
+    // if (empty($generated_token))
+    // {
+    //   echo "\nToken couldn't be generated.";
+    //   return;
+    // }
+
+    if (!is_array($generated_token))
     {
-      echo "\nToken couldn't be generated.";
-      return;
+      echo self::error_handler($generated_token);
     }
 
-    echo $generated_token;
+    echo $generated_token['response_value'];
     return;
   }
 

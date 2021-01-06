@@ -21,7 +21,15 @@ if ($uri[1] === 'validate') {
   }
 
   $encrypted_authentication_token = $response->get_token_from_header();
+
   $encrypted_authorization_token = CurlController::request('http://ser.local/auth/access_token', $encrypted_authentication_token);
+
+  // return error and stop script
+  if (substr($encrypted_authorization_token, 0, 1) === '{' || substr($encrypted_authorization_token, 0, 1) === '<') {
+    echo $encrypted_authorization_token;
+    exit();
+  }
+
   $validate_authorization_token = $response->verify_authorization_token($encrypted_authorization_token);
 
   if (!$validate_authorization_token) {
@@ -38,6 +46,7 @@ if ($uri[1] === 'validate') {
   }
 
   $encrypted_authentication_token = $response->get_token_from_header();
+
   $validate_authentication_token = CurlController::request('http://ser.local/auth/verify_token', $encrypted_authentication_token);
 
   if (!$validate_authentication_token) {
