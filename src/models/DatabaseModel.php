@@ -21,7 +21,6 @@ abstract class DatabaseModel
       return false;
     }
 
-    // echo 'Connected to ' . DB_NAME . '.<br>'; // for debugging
     return true;
   }
 

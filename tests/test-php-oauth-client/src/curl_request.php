@@ -65,7 +65,6 @@ class CurlController
     if ($ch === false)
     {
       return self::error_handler('Failed to initialize request.');
-      // throw new \Exception('Failed to initialize request.');
     }
 
     curl_setopt_array($ch, $curl_opts);
@@ -74,7 +73,6 @@ class CurlController
     if ($response === false)
     {
       return self::error_handler('Curl error ' . curl_errno($ch) . ': ' . curl_strerror(curl_errno($ch)));
-      // echo curl_error($ch) . "\n" . curl_strerror(curl_errno($ch));
     }
 
     curl_close($ch);

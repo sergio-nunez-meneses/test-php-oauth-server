@@ -48,7 +48,6 @@ class CurlController
     }
     else
     {
-      // throw new \Exception('Invalid request.');
       return self::error_handler('Invalid request.');
     }
 
@@ -64,7 +63,6 @@ class CurlController
     if ($ch === false)
     {
       return self::error_handler('Failed to initialize request.');
-      // throw new \Exception('Failed to initialize request.');
     }
 
     curl_setopt_array($ch, $curl_opts);
@@ -73,7 +71,6 @@ class CurlController
     if ($response === false)
     {
       return self::error_handler('Curl error ' . curl_errno($ch) . ': ' . curl_strerror(curl_errno($ch)));
-      // throw new Exception(curl_error($ch), curl_errno($ch));
     }
 
     curl_close($ch);
@@ -95,12 +92,6 @@ class CurlController
     list($username, $password) = explode(':', base64_decode($client_credentials['response_value']));
     $user = UserController::verify($username, $password);
 
-    // if (isset($user['response_type']) && $user['response_type'] === 'error')
-    // {
-    //   echo json_encode($user);
-    //   return;
-    // }
-
     if (!is_array($user))
     {
       echo self::error_handler($user);
@@ -112,17 +103,6 @@ class CurlController
     if ($stored_token)
     {
       $verified_token = $token->verify($stored_token['token']);
-
-      // if ($verified_token === true)
-      // {
-      //   echo $stored_token['token'];
-      //   return;
-      // }
-      // else
-      // {
-      //   echo $verified_token;
-      //   return;
-      // }
 
       if (!is_array($verified_token))
       {
@@ -136,12 +116,6 @@ class CurlController
 
     $generated_token = $token->generate($user['id']);
 
-    // if (empty($generated_token))
-    // {
-    //   echo "\nToken couldn't be generated.";
-    //   return;
-    // }
-
     if (!is_array($generated_token))
     {
       echo self::error_handler($generated_token);
@@ -153,7 +127,6 @@ class CurlController
 
   public static function verify_token_request()
   {
-    // echo (new JWTController)->verify();
     $verified_token = (new JWTController)->verify();
 
     if (!is_array($verified_token))
@@ -170,12 +143,10 @@ class CurlController
   public static function access_token_request()
   {
     $token = new JWTController();
-    // $authentication_token = $token->get_token_from_header();
     $authentication_token = $token->get_token_from_header();
 
     if (!is_array($authentication_token))
     {
-      // return $this->response_handler('error', $encrypted_token);
       echo self::error_handler($authentication_token);
       return;
     }
@@ -200,12 +171,6 @@ class CurlController
 
     $generated_token = $token->generate_access_token($authentication_token['jti'], $authentication_token['users_id']);
 
-    // if (empty($generated_token))
-    // {
-    //   echo "\nToken couldn't be generated.";
-    //   return;
-    // }
-
     if (!is_array($generated_token))
     {
       echo self::error_handler($generated_token);
@@ -227,7 +192,6 @@ class CurlController
 
   public static function revoke_token_request()
   {
-    // echo (new JWTController)->revoke_token();
     $revoked_tokens = (new JWTController)->revoke_token();
 
     if ($revoked_tokens !== true)

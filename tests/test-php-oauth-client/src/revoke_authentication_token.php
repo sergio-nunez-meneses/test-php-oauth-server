@@ -8,10 +8,6 @@ if (!isset($_COOKIE['authentication_cookie'])) {
 // client: request revoke authentication token
 $revoked_tokens = CurlController::request('http://ser.local/auth/revoke_token', $_COOKIE['authentication_cookie']);
 
-// if (!$revoked_authorization_token) {
-//   exit("Authentication token couldn't be revoked.\n");
-// }
-
 // return error and stop script
 if (substr($revoked_tokens, 0, 1) === '{' || substr($revoked_tokens, 0, 1) === '<') {
   echo $revoked_tokens;

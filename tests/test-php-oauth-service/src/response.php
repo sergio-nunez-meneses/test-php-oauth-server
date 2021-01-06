@@ -19,13 +19,11 @@ class ReponseController
     }
     else
     {
-      // throw new \Exception("Origin of the request wasn't found.");
       return "Origin of the request wasn't found.";
     }
 
     if (!in_array($origin, VALID_DOMAINS))
     {
-      // throw new \Exception('Unauthorized domain.');
       return 'Unauthorized domain.';
     }
 
@@ -48,7 +46,6 @@ class ReponseController
     }
     else
     {
-      // throw new \Exception('Authentication token not found.');
       return 'Authentication token not found.';
     }
 
@@ -56,17 +53,13 @@ class ReponseController
 
     if (!preg_match("/$token_type\s(\S+)/", $authorization_header, $matches))
     {
-      // throw new \Exception("Token type wasn't found in header.");
       return "Token type wasn't found in header.";
     }
 
     if (!isset($matches[1]) || empty($matches[1]))
     {
-      // throw new \Exception("Token wasn't found in header.");
       return "Token wasn't found in header.";
     }
-
-    // return $matches[1];
 
     $response = [
       'response_type' => 'authentication_token',
@@ -82,7 +75,6 @@ class ReponseController
 
     if (!$private_key)
     {
-      // return $this->response_handler('error', 'Invalid private key.');
       return 'Invalid private key.';
     }
 
@@ -90,7 +82,6 @@ class ReponseController
 
     if (!$public_key)
     {
-      // return $this->response_handler('error', "Public key couldn't be generated.");
       return "Public key couldn't be generated.";
     }
 
@@ -98,7 +89,6 @@ class ReponseController
 
     if (!$decrypted_authorization_token)
     {
-      // return $this->response_handler('error', openssl_error_string());
       return openssl_error_string();
     }
 
@@ -106,25 +96,21 @@ class ReponseController
 
     if (!is_array($authorization_token))
     {
-      // throw new \Exception("Authorization token doesn't contain expected structure.");
       return "Authorization token doesn't contain expected structure.";
     }
 
     if (empty($authorization_token['access_token']) && empty($authorization_token['user_id']))
     {
-      // throw new \Exception("Authorization token wasn't found neither in header nor in database.");
       return "Authorization token wasn't found neither in header nor in database.";
     }
 
     if (!is_string($authorization_token['access_token']) && !is_string($authorization_token['user_id']))
     {
-      // throw new \Exception("Authorization token isn't of the type string.");
       return "Authorization token isn't of the type string.";
     }
 
     if ($authorization_token['expires_in'] < time())
     {
-      // throw new \Exception('Authorization token expired.');
       return 'Authorization token expired.';
     }
 
@@ -134,7 +120,6 @@ class ReponseController
 
     if (!in_array($user_id, VALID_USERS))
     {
-      // throw new \Exception('Invalid user ID.');
       return 'Invalid user ID.';
     }
 
@@ -150,11 +135,6 @@ class ReponseController
   {
     $private_key = file_get_contents('./keys/private.key');
 
-    // if ($private_key)
-    // {
-    //   return $private_key;
-    // }
-
     return $private_key;
   }
 
@@ -162,18 +142,7 @@ class ReponseController
   {
     // create public key from resource
     $res = openssl_pkey_get_private($private_key);
-
-    // if (!$res)
-    // {
-    //   throw new \Exception('Invalid private key.');
-    // }
-
     $public_key = openssl_pkey_get_details($res);
-
-    // if (!$public_key)
-    // {
-    //   throw new \Exception("Public key couldn't be generated.");
-    // }
 
     return $public_key;
   }
@@ -182,8 +151,6 @@ class ReponseController
   {
     // decode must be done before spliting
     $token = str_split(base64_decode($token), 256);
-    // $private_key = $this->get_private_key();
-    // $public_key = $this->get_public_key($private_key)['key'];
     $decrypted_token = '';
 
     foreach ($token as $chunk)
@@ -192,7 +159,6 @@ class ReponseController
 
       if (!openssl_public_decrypt($chunk, $decrypted_chunk, $public_key, OPENSSL_PKCS1_PADDING))
       {
-        // throw new \Exception(openssl_error_string());
         return false;
       }
 
@@ -204,14 +170,6 @@ class ReponseController
 
   private function decode_token_structure($array)
   {
-    // $decoded_authorization_token = json_decode(base64_decode($array), true);
-    //
-    // if (!$decoded_authorization_token)
-    // {
-    //   throw new \Exception("Authorization token couldn't be decoded.");
-    // }
-
-    // return $decoded_authorization_token;
     return json_decode(base64_decode($array), true);
   }
 }
