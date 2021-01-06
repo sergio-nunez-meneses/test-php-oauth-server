@@ -50,7 +50,7 @@ class CurlController
     }
     else
     {
-      throw new \Exception('Invalid request.');
+      return self::error_handler('Invalid request.');
     }
 
     $url = filter_var($args[0], FILTER_VALIDATE_URL, FILTER_FLAG_PATH_REQUIRED);
@@ -60,31 +60,34 @@ class CurlController
 
   private static function execute_request($curl_opts, $url)
   {
-    try
+    $ch = curl_init($url);
+
+    if ($ch === false)
     {
-      $ch = curl_init($url);
-
-      if ($ch === false)
-      {
-        throw new \Exception('Failed to initialize request.');
-      }
-
-      curl_setopt_array($ch, $curl_opts);
-      $response = curl_exec($ch); // process request and return response
-
-      if ($response === false)
-      {
-        echo curl_error($ch) . "\n" . curl_strerror(curl_errno($ch));
-      }
-
-      curl_close($ch);
-      return $response;
+      return self::error_handler('Failed to initialize request.');
+      // throw new \Exception('Failed to initialize request.');
     }
-    catch (\Exception $e)
+
+    curl_setopt_array($ch, $curl_opts);
+    $response = curl_exec($ch); // process request and return response
+
+    if ($response === false)
     {
-      trigger_error(
-        sprintf('Curl failed with error #%d: %s', $e->getCode(), $e->getMessage()),
-      E_USER_ERROR);
+      return self::error_handler('Curl error ' . curl_errno($ch) . ': ' . curl_strerror(curl_errno($ch)));
+      // echo curl_error($ch) . "\n" . curl_strerror(curl_errno($ch));
     }
+
+    curl_close($ch);
+    return $response;
+  }
+
+  private static function error_handler($value)
+  {
+    $response = [
+      'response_type' => 'error',
+      'response_value' => $value
+    ];
+
+    return json_encode($response);
   }
 }

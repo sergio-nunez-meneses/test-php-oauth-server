@@ -15,14 +15,32 @@ $uri = explode('/', $uri);
 if ($uri[1] === 'validate') {
   // service: request authorization token and authorize user
   $response = new ReponseController();
+  $origin = $response->get_origin_from_header();
 
-  if (!$response->get_origin_from_header()) {
-    exit("403: Unauthorized.");
+  if ($origin !== true) {
+    $error = [
+      'response_type' => 'error',
+      'response_value' => $origin
+    ];
+
+    echo json_encode($error);
+    exit();
   }
 
   $encrypted_authentication_token = $response->get_token_from_header();
 
-  $encrypted_authorization_token = CurlController::request('http://ser.local/auth/access_token', $encrypted_authentication_token);
+  if (!is_array($encrypted_authentication_token))
+  {
+    $error = [
+      'response_type' => 'error',
+      'response_value' => $encrypted_authentication_token
+    ];
+
+    echo json_encode($error);
+    exit();
+  }
+
+  $encrypted_authorization_token = CurlController::request('http://ser.local/auth/access_token', $encrypted_authentication_token['response_value']);
 
   // return error and stop script
   if (substr($encrypted_authorization_token, 0, 1) === '{' || substr($encrypted_authorization_token, 0, 1) === '<') {
@@ -32,20 +50,32 @@ if ($uri[1] === 'validate') {
 
   $validate_authorization_token = $response->verify_authorization_token($encrypted_authorization_token);
 
-  if (!$validate_authorization_token) {
-    exit("Authorization token couldn't be validated.\n");
+  // if (!$validate_authorization_token) {
+  //   exit("Authorization token couldn't be validated.\n");
+  // }
+
+  if (!is_array($validate_authorization_token))
+  {
+    $error = [
+      'response_type' => 'error',
+      'response_value' => $validate_authorization_token
+    ];
+
+    echo json_encode($error);
+    exit();
   }
 
   echo $encrypted_authorization_token;
+
 } elseif ($uri[1] === 'service') {
   // client: access service
-  $response = new ReponseController();
+  $token = new ReponseController();
 
-  if (!$response->get_origin_from_header()) {
+  if (!$token->get_origin_from_header()) {
     exit("403: Unauthorized.\n");
   }
 
-  $encrypted_authentication_token = $response->get_token_from_header();
+  $encrypted_authentication_token = $token->get_token_from_header();
 
   $validate_authentication_token = CurlController::request('http://ser.local/auth/verify_token', $encrypted_authentication_token);
 

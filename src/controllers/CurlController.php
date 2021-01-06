@@ -153,7 +153,17 @@ class CurlController
 
   public static function verify_token_request()
   {
-    echo (new JWTController)->verify();
+    // echo (new JWTController)->verify();
+    $verified_token = (new JWTController)->verify();
+
+    if (!is_array($verified_token))
+    {
+      echo self::error_handler($verified_token);
+      return;
+    }
+
+    echo $verified_token;
+    return;
   }
 
   // return authorization token

@@ -250,7 +250,7 @@ class JWTController
       {
         // throw new \Exception("Tokens couldn't be revoked and deleted from database.");
         // return $this->response_handler('error', $revoked_tokens);
-        $revoked_tokens = $error_message;
+        $error_message = $revoked_tokens;
         return $error_message;
       }
 
@@ -353,22 +353,56 @@ class JWTController
     }
     else
     {
-      // this doesn't work yet
-      $encrypted_access_token = $this->get_token_from_header();
-      $has_token = false;
+      // code...
     }
 
-    $decrypted_access_token = $this->decrypt_token($encrypted_access_token);
+    $private_key = $this->get_private_key();
+
+    if (!$private_key)
+    {
+      // return $this->response_handler('error', 'Invalid private key.');
+      return 'Invalid private key.';
+    }
+
+    $public_key = $this->get_public_key($private_key);
+
+    if (!$public_key)
+    {
+      // return $this->response_handler('error', "Public key couldn't be generated.");
+      return "Public key couldn't be generated.";
+    }
+
+    $decrypted_access_token = $this->decrypt_token($encrypted_access_token, $public_key['key']);
+
+    if (!$decrypted_access_token)
+    {
+      // return $this->response_handler('error', openssl_error_string());
+      return openssl_error_string();
+    }
+
     $access_token = $this->decode_token_structure($decrypted_access_token);
 
-    if (empty($access_token))
+    // if (empty($access_token))
+    // {
+    //   throw new \Exception("Access token couldn't be decrypted.");
+    // }
+
+    if (!is_array($access_token))
     {
-      throw new \Exception("Access token couldn't be decrypted.");
+      // throw new \Exception("Authorization token doesn't contain expected structure.");
+      return "Access token doesn't contain expected structure.";
     }
 
-    if (empty($access_token['access_token']))
+    if (empty($access_token['access_token']) && empty($access_token['user_id']))
     {
-      throw new \Exception("Access token wasn't found neither in header nor in database.");
+      // throw new \Exception("Access token wasn't found neither in header nor in database.");
+      return "Access token wasn't found neither in header nor in database.";
+    }
+
+    if (!is_string($access_token['access_token']) && !is_string($access_token['user_id']))
+    {
+      // throw new \Exception("Authorization token isn't of the type string.");
+      return "Access token isn't of the type string.";
     }
 
     $token_type = 'authorization';
@@ -378,12 +412,14 @@ class JWTController
 
     if (!$stored_token)
     {
-      throw new \Exception('Invalid access token.');
+      // throw new \Exception('Invalid access token.');
+      return 'Invalid access token.';
     }
 
     if ($token_model->find_by_token('blacklist', $stored_token['token']))
     {
-      throw new \Exception('Access token was found in the blacklist.');
+      // throw new \Exception('Access token was found in the blacklist.');
+      return 'Access token was found in the blacklist.';
     }
 
     $now = date('Y-m-d H:i:s');
@@ -392,18 +428,21 @@ class JWTController
     {
       if (!$token_model->add_to_blacklist($stored_token['jti'], $stored_token['token'], $token_type, $stored_token['users_id']))
       {
-        throw new \Exception("Access token couldn't be added to blacklist.");
+        // throw new \Exception("Access token couldn't be added to blacklist.");
+        return "Access token couldn't be added to blacklist.";
       }
 
       if (!$token_model->delete($token_type, $stored_token['jti']))
       {
-        throw new \Exception("Access token couldn't be revoked and deleted from database.");
+        // throw new \Exception("Access token couldn't be revoked and deleted from database.");
+        return "Access token couldn't be revoked and deleted from database.";
       }
 
-      throw new \Exception('Access token expired.');
+      // throw new \Exception('Access token expired.');
+      return 'Access token expired.';
     }
 
-    $decrypted_user_id = $this->decrypt_token($access_token['user_id']);
+    $decrypted_user_id = $this->decrypt_token($access_token['user_id'], $public_key['key']);
     $get_user_id = substr($decrypted_user_id, -1);
     $user_id = filter_var($get_user_id, FILTER_SANITIZE_STRING);
 
@@ -412,13 +451,20 @@ class JWTController
     {
       if (!$token_model->find_by_user($token_type, $user_id))
       {
-        throw new \Exception('Invalid user ID.');
+        // throw new \Exception('Invalid user ID.');
+        return 'Invalid user ID.';
       }
     }
 
-    $access_token['user_id'] = $user_id;
+    // $access_token['user_id'] = $user_id;
+    // return $access_token;
 
-    return $access_token;
+    $response = [
+      'response_type' => 'verified_token',
+      'response_value' => $user_id
+    ];
+
+    return $response;
   }
 
   // this method must be changed
@@ -520,29 +566,6 @@ class JWTController
     }
 
     return true;
-  }
-
-  private function create_access_token($encrypted_license)
-  {
-    // response format from https://tools.ietf.org/html/rfc6749#section-5.1
-
-    // $user_id = 'agent_' . $this->generate_jti() . $user_id;
-    // $encrypted_user_id = $this->encrypt_token($user_id);
-    //
-    // if (empty($encrypted_user_id))
-    // {
-    //   throw new \Exception("User ID couldn't be encrypted.");
-    // }
-
-    $exp = time() + 2 * 60 * 1 * 1; // expiration time set to ten minutes from now
-    $access_token = [
-      'access_token' => $this->generate_jti(), // sign ?
-      'token_type' => 'Bearer',
-      'expires_in' => $exp,
-      'user_id' => $encrypted_license
-    ];
-
-    return $access_token;
   }
 
   private function create_header($algorithm)
@@ -654,6 +677,29 @@ class JWTController
     }
 
     return $algorithm;
+  }
+
+  private function create_access_token($encrypted_license)
+  {
+    // response format from https://tools.ietf.org/html/rfc6749#section-5.1
+
+    // $user_id = 'agent_' . $this->generate_jti() . $user_id;
+    // $encrypted_user_id = $this->encrypt_token($user_id);
+    //
+    // if (empty($encrypted_user_id))
+    // {
+    //   throw new \Exception("User ID couldn't be encrypted.");
+    // }
+
+    $exp = time() + 2 * 60 * 1 * 1; // expiration time set to ten minutes from now
+    $access_token = [
+      'access_token' => $this->generate_jti(), // sign ?
+      'token_type' => 'Bearer',
+      'expires_in' => $exp,
+      'user_id' => $encrypted_license
+    ];
+
+    return $access_token;
   }
 
   // method not working yet
@@ -878,7 +924,7 @@ class JWTController
     return base64_encode($encrypted_token);
   }
 
-  public function decrypt_token($token, $public_key) // decrypt_token($token, $public_key)
+  public function decrypt_token($token, $public_key)
   {
     // decode must be done before spliting
     $token = str_split(base64_decode($token), 256);
