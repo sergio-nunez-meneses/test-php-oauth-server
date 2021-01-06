@@ -41,7 +41,8 @@ class IndexController
     }
     else
     {
-      throw new \Exception('Page ' . strtoupper($uri[1]) . ': Not found.');
+      // throw new \Exception('Page ' . strtoupper($uri[1]) . ': Not found.');
+      echo 'Page ' . strtoupper($uri[1]) . ': Not found.';
     }
   }
 }

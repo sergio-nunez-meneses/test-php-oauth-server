@@ -3,6 +3,7 @@ require './tools/constants.php';
 
 class ReponseController
 {
+
   public function get_origin_from_header()
   {
     if (array_key_exists('HTTP_ORIGIN', $_SERVER))

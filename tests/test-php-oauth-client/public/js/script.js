@@ -1,8 +1,20 @@
-const buttons = document.getElementsByTagName('button');
+const buttons = getBy('tag', 'button');
 
 if (document.cookie !== '' && document.cookie.startsWith('authentication_cookie')) {
   var cookie = document.cookie.split('=')[1];
   console.log(cookie);
+}
+
+function getBy(attribute, value) {
+  if (attribute === 'tag') {
+    return document.getElementsByTagName(value);
+  } else if (attribute === 'id') {
+    return document.getElementById(value);
+  } else if (attribute === 'name') {
+    return document.getElementsByName(value)[0];
+  } else if (attribute === 'class') {
+    return document.getElementsByClassName(value);
+  }
 }
 
 function ajax(method, url, contentType, data) {
@@ -17,7 +29,7 @@ function request(action, method) {
   const actions = ['request', 'validate', 'redirect', 'revoke'];
 
   if (actions.indexOf(action) === -1) {
-    error('Invalid request.');
+    alert('Invalid request.');
     return;
   }
 

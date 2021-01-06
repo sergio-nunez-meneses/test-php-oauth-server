@@ -157,16 +157,16 @@ class CurlController
 
     if ($stored_authorization_token)
     {
-      if ($token->verify_access_token($stored_authorization_token['token']))
+      $verified_authorization_token = $token->verify_access_token($stored_authorization_token['token']);
+
+      if (!is_array($verified_authorization_token))
       {
-        echo $stored_authorization_token['token'];
+        echo self::error_handler($verified_authorization_token);
         return;
       }
-      else
-      {
-        echo 'Token revoked.';
-        return;
-      }
+
+      echo $stored_authorization_token['token'];
+      return;
     }
 
     $generated_token = $token->generate_access_token($authentication_token['jti'], $authentication_token['users_id']);
