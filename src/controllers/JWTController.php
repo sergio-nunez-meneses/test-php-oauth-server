@@ -246,11 +246,12 @@ class JWTController
 
       $revoked_tokens = $this->revoke_tokens($token_model, $stored_token['jti'], $stored_token['token'], $stored_token['users_id']);
 
-      if (!$revoked_tokens)
+      if ($revoked_tokens !== true)
       {
         // throw new \Exception("Tokens couldn't be revoked and deleted from database.");
         // return $this->response_handler('error', $revoked_tokens);
-        return $revoked_tokens;
+        $revoked_tokens = $error_message;
+        return $error_message;
       }
 
       // if (!$token_model->add_to_blacklist($stored_token['jti'], $stored_token['token'], $token_type, $stored_token['users_id']))

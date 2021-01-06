@@ -226,7 +226,17 @@ class CurlController
 
   public static function revoke_token_request()
   {
-    echo (new JWTController)->revoke_token();
+    // echo (new JWTController)->revoke_token();
+    $revoked_tokens = (new JWTController)->revoke_token();
+
+    if ($revoked_tokens !== true)
+    {
+      echo self::error_handler($revoked_tokens);
+      return;
+    }
+
+    echo $revoked_tokens;
+    return;
   }
 
   private static function error_handler($value)
