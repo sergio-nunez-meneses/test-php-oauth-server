@@ -58,6 +58,7 @@ class JWTController
     ];
 
     return $response;
+    // return $this->response_handler('authentication_token', $encrypted_token);
   }
 
   public function verify()
@@ -67,7 +68,6 @@ class JWTController
     $valid_uris = ['request_token', 'access_token', 'refresh_token', 'revoke_token'];
     $num_args = func_num_args();
     $arg = (sizeof(func_get_args()) > 0) ? func_get_args()[0] : ''; // used in pre-production
-    // $arg = func_get_arg(0);
 
     if ($num_args === 0 || $num_args === 1 && in_array($arg, $valid_uris))
     {
@@ -203,6 +203,7 @@ class JWTController
     ];
 
     return $response;
+    // return $this->response_handler('valid_authentication_token', true);
   }
 
   public function generate_access_token($jti, $user_id)
@@ -244,6 +245,7 @@ class JWTController
     ];
 
     return $response;
+    // return $this->response_handler('authorization_token', $encrypted_access_token);
   }
 
   public function verify_access_token()
@@ -349,6 +351,7 @@ class JWTController
     ];
 
     return $response;
+    // return $this->response_handler('valid_authorization_token', true);
   }
 
   // this method must be changed
@@ -553,11 +556,7 @@ class JWTController
   // method not working yet
   public function get_origin_from_header()
   {
-    if (array_key_exists('HTTP_HOST', $_SERVER))
-    {
-      $origin = $_SERVER['HTTP_HOST'];
-    }
-    elseif (array_key_exists('HTTP_ORIGIN', $_SERVER))
+    if (array_key_exists('HTTP_ORIGIN', $_SERVER))
     {
       $origin = $_SERVER['HTTP_ORIGIN'];
     }
@@ -577,6 +576,7 @@ class JWTController
     // if (!in_array($origin, AUTHORIZED_DOMAINS))
     // {
     //   throw new \Exception('Unauthorized domain.');
+    //   return 'Unauthorized domain.';
     // }
 
     return true;
@@ -626,6 +626,7 @@ class JWTController
       ];
 
       return $response;
+      // return $this->response_handler('client_credentials', $matches[1]);
     }
     elseif (strtolower($token_type) === 'bearer')
     {
@@ -638,6 +639,7 @@ class JWTController
       ];
 
       return $response;
+      // return $this->response_handler('authentication_token', $stored_token);
     }
   }
 
@@ -705,7 +707,6 @@ class JWTController
     {
       $encrypted_chunk = '';
 
-      // using OPENSSL_PKCS1_PADDING as padding
       if (!openssl_private_encrypt($chunk, $encrypted_chunk, $private_key, OPENSSL_PKCS1_PADDING))
       {
         return false;
@@ -759,5 +760,15 @@ class JWTController
   {
     // if (!base64_decode($input)) throw new \Exception('Error decoding input.');
     return base64_decode(str_pad(strtr($string, '-_', '+/'), strlen($string) % 4, '=', STR_PAD_RIGHT));
+  }
+
+  private function response_handler($type, $value)
+  {
+    $response = [
+      'response_type' => $type,
+      'response_value' => $value
+    ];
+
+    return $response;
   }
 }
