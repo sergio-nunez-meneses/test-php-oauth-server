@@ -57,8 +57,7 @@ class JWTController
       'response_value' => $encrypted_token
     ];
 
-    return $response;
-    // return $this->response_handler('authentication_token', $encrypted_token);
+    return $this->response_handler('authentication_token', $encrypted_token);
   }
 
   public function verify()
@@ -202,8 +201,7 @@ class JWTController
       'response_value' => true
     ];
 
-    return $response;
-    // return $this->response_handler('valid_authentication_token', true);
+    return $this->response_handler('valid_authentication_token', true);
   }
 
   public function generate_access_token($jti, $user_id)
@@ -244,8 +242,7 @@ class JWTController
       'response_value' => $encrypted_access_token
     ];
 
-    return $response;
-    // return $this->response_handler('authorization_token', $encrypted_access_token);
+    return $this->response_handler('authorization_token', $encrypted_access_token);
   }
 
   public function verify_access_token()
@@ -350,8 +347,7 @@ class JWTController
       'response_value' => $user_id
     ];
 
-    return $response;
-    // return $this->response_handler('valid_authorization_token', true);
+    return $this->response_handler('valid_authorization_token', true);
   }
 
   // this method must be changed
@@ -625,8 +621,7 @@ class JWTController
         'response_value' => $matches[1]
       ];
 
-      return $response;
-      // return $this->response_handler('client_credentials', $matches[1]);
+      return $this->response_handler('client_credentials', $matches[1]);
     }
     elseif (strtolower($token_type) === 'bearer')
     {
@@ -638,8 +633,7 @@ class JWTController
         'response_value' => $stored_token
       ];
 
-      return $response;
-      // return $this->response_handler('authentication_token', $stored_token);
+      return $this->response_handler('authentication_token', $stored_token);
     }
   }
 
