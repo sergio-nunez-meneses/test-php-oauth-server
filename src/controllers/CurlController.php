@@ -1,5 +1,6 @@
 <?php
 
+// rename to RequestController
 class CurlController
 {
 
@@ -77,6 +78,7 @@ class CurlController
     return $response;
   }
 
+  // create class ResponseController with the following methods
   // return authentication token
   public static function token_request()
   {
