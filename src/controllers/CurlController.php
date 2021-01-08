@@ -9,6 +9,13 @@ class CurlController
   {
     $num_args = func_num_args();
     $args = func_get_args();
+    $curl_opts = [
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_SSL_VERIFYPEER => false, // fixed bug 'curl: (60) SSL certificate problem: unable to get local issuer certificate'
+      CURLOPT_SSL_VERIFYHOST => false, // 'curl: (51) SSL peer certificate or SSH remote key was not OK'
+      CURLOPT_SSL_VERIFYSTATUS => false,
+      CURLOPT_VERBOSE => true
+    ];
 
     if ($num_args === 3)
     {
@@ -19,32 +26,20 @@ class CurlController
         'scope' => '' // optional ?
       ]);
 
-      $curl_opts = [
-        CURLOPT_HTTPHEADER => [
-          'Content-Type: application/x-www-form-urlencoded',
-          "Authorization: Basic $token",
-        ],
-        CURLOPT_POST => 1,
-        CURLOPT_POSTFIELDS => $payload,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_SSL_VERIFYPEER => false, // fixed bug 'curl: (60) SSL certificate problem: unable to get local issuer certificate'
-        CURLOPT_SSL_VERIFYHOST => false, // 'curl: (51) SSL peer certificate or SSH remote key was not OK'
-        CURLOPT_SSL_VERIFYSTATUS => false,
-        CURLOPT_VERBOSE => TRUE
+      $curl_opts[CURLOPT_POST] = 1;
+      $curl_opts[CURLOPT_POSTFIELDS] = $payload;
+      $curl_opts[CURLOPT_HTTPHEADER] = [
+        'Origin: ' . $_SERVER['HTTP_HOST'],
+        'Content-Type: application/x-www-form-urlencoded',
+        'Authorization: Basic ' . $token
       ];
     }
     elseif ($num_args === 2)
     {
-      $curl_opts = [
-        CURLOPT_HTTPHEADER => [
-          'Content-Type: application/json',
-          'Authorization: Bearer ' . $args[1]
-        ],
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_SSL_VERIFYHOST => false,
-        CURLOPT_SSL_VERIFYSTATUS => false,
-        CURLOPT_VERBOSE => TRUE
+      $curl_opts[CURLOPT_HTTPHEADER] = [
+        'Origin: ' . $_SERVER['HTTP_HOST'],
+        'Content-Type: application/json',
+        'Authorization: Bearer ' . $args[1]
       ];
     }
     else

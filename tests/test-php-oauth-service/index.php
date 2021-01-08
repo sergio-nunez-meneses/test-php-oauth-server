@@ -39,7 +39,7 @@ if (!is_array($encrypted_authentication_token))
 }
 
 if (isset($encrypted_authentication_token)) {
-  if ($uri[1] === 'validate') {
+  if ($uri[1] === 'validate' || isset($uri[2]) && $uri[2] === 'validate') {
     // service: request authorization token
     $encrypted_authorization_token = CurlController::request('http://ser.local/auth/access_token', $encrypted_authentication_token['response_value']);
 
@@ -65,7 +65,7 @@ if (isset($encrypted_authentication_token)) {
 
     echo $encrypted_authorization_token;
 
-  } elseif ($uri[1] === 'service') {
+  } elseif ($uri[1] === 'service' || isset($uri[2]) && $uri[2] === 'service') {
     // client: access service
     $validate_authentication_token = CurlController::request('http://ser.local/auth/verify_token', $encrypted_authentication_token['response_value']);
 

@@ -16,47 +16,8 @@ class CurlController
       CURLOPT_VERBOSE => true
     ];
 
-    // if ($num_args === 3)
-    // {
-    //   // build header and body
-    //   $token = base64_encode($args[1] . ':' . $args[2]);
-    //   $payload = http_build_query([
-    //     'grant_type' => 'client_credentials',
-    //     'scope' => '' // optional ?
-    //   ]);
-    //
-    //   $curl_opts = [
-    //     CURLOPT_HTTPHEADER => [
-    //       'Origin: ' . $_SERVER['HTTP_HOST'],
-    //       'Content-Type: application/x-www-form-urlencoded',
-    //       "Authorization: Basic $token",
-    //     ],
-    //     CURLOPT_POST => 1,
-    //     CURLOPT_POSTFIELDS => $payload,
-    //     CURLOPT_RETURNTRANSFER => true,
-    //     CURLOPT_SSL_VERIFYPEER => false, // fixed bug 'curl: (60) SSL certificate problem: unable to get local issuer certificate'
-    //     CURLOPT_SSL_VERIFYHOST => false,  // 'curl: (51) SSL peer certificate or SSH remote key was not OK'
-    //     CURLOPT_SSL_VERIFYSTATUS => false,
-    //     CURLOPT_VERBOSE => true
-    //   ];
-    // }
-    // elseif
-
     if ($num_args === 2)
     {
-      // $curl_opts = [
-      //   CURLOPT_HTTPHEADER => [
-      //     'Origin: ' . $_SERVER['HTTP_HOST'],
-      //     'Content-Type: application/json',
-      //     'Authorization: Bearer ' . $args[1]
-      //   ],
-      //   CURLOPT_RETURNTRANSFER => true,
-      //   CURLOPT_SSL_VERIFYPEER => false,
-      //   CURLOPT_SSL_VERIFYHOST => false,
-      //   CURLOPT_SSL_VERIFYSTATUS => false,
-      //   CURLOPT_VERBOSE => true
-      // ];
-
       $curl_opts[CURLOPT_HTTPHEADER] = [
         'Origin: ' . $_SERVER['HTTP_HOST'],
         'Content-Type: application/json',
