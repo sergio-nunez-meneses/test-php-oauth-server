@@ -52,11 +52,6 @@ class JWTController
       return "Token couldn't be stored in database.";
     }
 
-    $response = [
-      'response_type' => 'authentication_token',
-      'response_value' => $encrypted_token
-    ];
-
     return $this->response_handler('authentication_token', $encrypted_token);
   }
 
@@ -64,11 +59,10 @@ class JWTController
   {
     // jwt validation from https://tools.ietf.org/html/rfc7519#section-7.2 , plus public key decryption
 
-    $valid_uris = ['request_token', 'access_token', 'refresh_token', 'revoke_token'];
     $num_args = func_num_args();
     $arg = (sizeof(func_get_args()) > 0) ? func_get_args()[0] : ''; // used in pre-production
 
-    if ($num_args === 0 || $num_args === 1 && in_array($arg, $valid_uris))
+    if ($num_args === 0 || $num_args === 1 && in_array($arg, VALID_URIS))
     {
       $uri = $arg;
       $has_token = false;
@@ -82,7 +76,7 @@ class JWTController
 
       $encrypted_token = $encrypted_token['response_value']['token'];
     }
-    elseif ($num_args === 1 && !in_array($arg, $valid_uris))
+    elseif ($num_args === 1 && !in_array($arg, VALID_URIS))
     {
       $encrypted_token = $arg;
     }
@@ -196,11 +190,6 @@ class JWTController
       return "Token's signature couldn't be verified.";
     }
 
-    $response = [
-      'response_type' => 'verified_token',
-      'response_value' => true
-    ];
-
     return $this->response_handler('valid_authentication_token', true);
   }
 
@@ -236,11 +225,6 @@ class JWTController
     {
       return "Token couldn't be stored in database.";
     }
-
-    $response = [
-      'response_type' => 'authorization_token',
-      'response_value' => $encrypted_access_token
-    ];
 
     return $this->response_handler('authorization_token', $encrypted_access_token);
   }
@@ -333,7 +317,6 @@ class JWTController
     $get_user_id = substr($decrypted_user_id, -1);
     $user_id = filter_var($get_user_id, FILTER_SANITIZE_STRING);
 
-
     if (isset($has_token) && !$has_token)
     {
       if (!$token_model->find_by_user($token_type, $user_id))
@@ -341,11 +324,6 @@ class JWTController
         return 'Invalid user ID.';
       }
     }
-
-    $response = [
-      'response_type' => 'verified_token',
-      'response_value' => $user_id
-    ];
 
     return $this->response_handler('valid_authorization_token', true);
   }
@@ -569,9 +547,8 @@ class JWTController
       return "Request's origin domain wasn't found.";
     }
 
-    // if (!in_array($origin, AUTHORIZED_DOMAINS))
+    // if (!in_array($origin, VALID_DOMAINS))
     // {
-    //   throw new \Exception('Unauthorized domain.');
     //   return 'Unauthorized domain.';
     // }
 
@@ -616,22 +593,12 @@ class JWTController
 
     if (strtolower($token_type) === 'basic')
     {
-      $response = [
-        'response_type' => 'client_credentials',
-        'response_value' => $matches[1]
-      ];
-
       return $this->response_handler('client_credentials', $matches[1]);
     }
     elseif (strtolower($token_type) === 'bearer')
     {
       $token = filter_var($matches[1], FILTER_SANITIZE_STRING);
       $stored_token = (new JWTModel)->find_by_token('authentication', $token);
-
-      $response = [
-        'response_type' => 'authentication_token',
-        'response_value' => $stored_token
-      ];
 
       return $this->response_handler('authentication_token', $stored_token);
     }
