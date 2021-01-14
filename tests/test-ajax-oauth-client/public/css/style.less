@@ -3,10 +3,7 @@
 
 @import 'mixins.less';
 
-@base-width: 600px;
-@base-height: 250px;
-
-@header-color: #363636;
+@header-color: #401d1d;
 @background-color: #e5e5e5;
 @element-color: #242f40;
 @button-color: #c04021;
@@ -18,6 +15,8 @@ html {
 body {
 	margin: 0;
   background-color: #ccbebe;
+  font-size: 1em;
+  color: #fff;
 }
 
 a {
@@ -26,4 +25,71 @@ a {
 
 .hidden {
   display: none;
+}
+
+.header-container,
+.columns-container,
+.footer-container {
+  .size(56.25%, auto);
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.left-column, .sidebar {
+  box-sizing: border-box;
+  padding: 1.875rem;
+}
+
+.header-container {
+  .flex(row, center, center);
+  background-color: @header-color;
+
+  & .header-items {
+    .size(100%, auto);
+    .flex(row, space-around, center);
+    flex-wrap: wrap;
+    padding: 0.5rem;
+
+    & .nav-item {
+      font-size: 1.875rem;
+      color: #fff;
+      margin: 0.5rem 0;
+    }
+  }
+}
+
+.columns-container {
+  display: flex;
+}
+
+.left-column {
+  background-color: #5c2a2a;
+  width: 66.7%;
+}
+
+.sidebar {
+  background-color: #9f3030;
+  width: 33.3%;
+}
+
+.footer-container {
+  padding: 0.625rem 1.875rem;
+  background-color: @header-color;
+  text-align: center;
+}
+
+@media (max-width: 1200px) {
+  .header-container,
+  .columns-container,
+  .footer-container {
+    width: 75%;
+  }
+}
+
+@media (max-width: 992px) {
+  .header-container,
+  .columns-container,
+  .footer-container {
+    width: 85%;
+  }
 }
