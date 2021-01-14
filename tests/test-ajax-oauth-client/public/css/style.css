@@ -1,0 +1,14 @@
+html {
+  width: 100%;
+  height: 100%;
+}
+body {
+  margin: 0;
+  background-color: #ccbebe;
+}
+a {
+  text-decoration: none;
+}
+.hidden {
+  display: none;
+}

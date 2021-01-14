@@ -14,37 +14,41 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="Sergio NUNEZ MENESES">
-    <link rel="stylesheet" href="public/css/normalize.css">
     <link rel="stylesheet" href="public/css/style.css">
-    <title>Authentication Token Request</title>
+    <title>OAuth Server Test</title>
   </head>
   <body>
 
-    <header>
-      <section class="header-container">
-        <img class="header-logo" src="public/img/logo_davi.png">
-        <h1 class="header-title">Emotional AI Web Services</h1>
-      </section>
+    <header id="mainHeader">
+      <nav id="headerLinks">
+        <a class="navLink" href="/">
+          <img src="public/img/logo_davi.png" alt="logo">
+        </a>
+        <a class="navLink" href="">A propos</a>
+        <a class="navLink" href="">Contact</a>
+      </nav>
     </header>
 
+    <div id=column>
+      <main id="content">
+        <h2>Retorik The Emotional AI Platform</h2>
+        <p>Pour créer des experts digitaux et ainsi être plus proche des utilisateurs, Davi a développé une IA adaptée aux besoins des entreprises qui réalisent des tâches complexes au service des humains.</p>
 
-    <main class="main-container">
-      <!-- loading spinner -->
-      <section id="overlay" class="hidden spinner-overlay">
-        <div id="spinner" class="spinner loading">
-          <p id="spinnerText" class="spinner-text"></p>
-        </div>
-      </section>
+        <input id="username" class="login-input" type="text" name="username" value="username" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'username';}">
+        <input class="login-input" type="password" name="password" value="password" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'password';}">
+      </main>
 
-			<section id="contentContainer" class="login-container"></section>
-		</main>
+      <aside id="sidebar">
+        <h2>NOTRE MÉTIER</h2>
+        <p>DAVI est un éditeur de logiciels en mode SaaS qui dispose des expertises dans les domaines de l’IA, de l’Affective Computing et des IHM.</p>
+        <P>Pour mener à bien ses missions, DAVI dispose de compétences en ingénierie cognitive, en développement d’applications logicielles et en développement 3D.</p>
+      </aside>
+    </div>
 
-    <footer>
-      <section class="footer-container">
-        <p class="footer-text">Copyright © <a class="footer-text" href="https://davi.ai/en/home/">davi</a> 2015 - 2020</p>
-      </section>
-		</footer>
+    <footer id="mainFooter">
+      <p class="footer-text">Copyright © <a class="footer-text" href="https://davi.ai">davi</a> 2015 - 2020</p>
+    </footer>
 
-    <script src="public/js/script.js"></script>
+    <!-- <script src="public/js/script.js"></script> -->
   </body>
 </html>
