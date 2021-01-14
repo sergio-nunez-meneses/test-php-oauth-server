@@ -42,11 +42,27 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
         </button>
       </main>
 
-      <aside class="sidebar">
+      <aside class="right-column">
         <h2>NOTRE MÉTIER</h2>
         <p>DAVI est un éditeur de logiciels en mode SaaS qui dispose des expertises dans les domaines de l’IA, de l’Affective Computing et des IHM.</p>
         <P>Pour mener à bien ses missions, DAVI dispose de compétences en ingénierie cognitive, en développement d’applications logicielles et en développement 3D.</p>
       </aside>
+    </div>
+
+    <div class="dashboard-container">
+      <aside class="services-column">
+        <a class="service-link" href="">Dashboard</a>
+        <a id="serviceIA" class="service-link" href="">Services IA</a>
+        <a class="service-link" href="">NPL OWL</a>
+        <a class="service-link" href="">NPL DEEP</a>
+        <a class="service-link" href="">FAQ</a>
+        <a class="service-link" href="">TTS</a>
+      </aside>
+
+      <main class="activities-column">
+        <h2 class="activities-title">ACTIVITÉS RÉCENTES</h2>
+        <p class="activities-message">Aucune activité récente n'est disponible.</p>
+      </main>
     </div>
 
     <footer class="footer-container">

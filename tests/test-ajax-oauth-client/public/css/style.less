@@ -3,17 +3,24 @@
 
 @import 'mixins.less';
 
+// variables
+
 @header-color: #401d1d;
 @background-color: #e5e5e5;
 @element-color: #242f40;
 @button-color: #c04021;
 
-html {
-  .size(100%, 100%);
-}
+@thiner-column: #9f3030;
+
+// reset
 
 body {
 	margin: 0;
+}
+
+// CSS
+
+body {
   background-color: #ccbebe;
   font-size: 1em;
   color: #fff;
@@ -29,15 +36,11 @@ a {
 
 .header-container,
 .columns-container,
+.dashboard-container,
 .footer-container {
-  .size(56.25%, auto);
+  .size(56.25%, 100%);
   margin: 0 auto;
   box-sizing: border-box;
-}
-
-.left-column, .sidebar {
-  box-sizing: border-box;
-  padding: 1.875rem;
 }
 
 .header-container {
@@ -47,29 +50,63 @@ a {
   & .header-items {
     .size(100%, auto);
     .flex(row, space-around, center);
-    flex-wrap: wrap;
+    // flex-wrap: wrap;
     padding: 0.5rem;
 
     & .nav-item {
       font-size: 1.875rem;
       color: #fff;
       margin: 0.5rem 0;
+
+      & #logo {
+        .size(3rem, auto);
+      }
     }
   }
 }
 
-.columns-container {
+.columns-container, .dashboard-container {
   display: flex;
 }
 
-.left-column {
-  background-color: #5c2a2a;
-  width: 66.7%;
+.left-column, .right-column {
+  box-sizing: border-box;
+  padding: 1.875rem;
 }
 
-.sidebar {
-  background-color: #9f3030;
+.left-column {
+  width: 66.7%;
+  background-color: #5c2a2a;
+}
+
+.right-column {
   width: 33.3%;
+  background-color: #9f3030;
+}
+
+.services-column {
+  .flex(column, center, center);
+  width: 33.3%;
+  padding: 1rem;
+  background-color: #9f3030;
+
+  & .service-link {
+    color: #fff;
+  }
+}
+
+.activities-column {
+  width: 66.7%;
+  padding: 1rem;
+  background-color: #d8cccc;
+
+  & .activities-title {
+    color: #5a5757;
+  }
+
+  & .activities-message {
+    color: #262424;
+  }
 }
 
 .footer-container {
@@ -78,9 +115,12 @@ a {
   text-align: center;
 }
 
+// media queries
+
 @media (max-width: 1200px) {
   .header-container,
   .columns-container,
+  .dashboard-container,
   .footer-container {
     width: 75%;
   }
@@ -89,7 +129,51 @@ a {
 @media (max-width: 992px) {
   .header-container,
   .columns-container,
+  .dashboard-container,
   .footer-container {
     width: 85%;
+  }
+
+  & #serviceIA {
+    // display: block;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-container,
+  .columns-container,
+  .dashboard-container,
+  .footer-container,
+  .left-column,
+  .right-column,
+  .services-column,
+  .activities-column {
+    width: 95%;
+  }
+
+  .left-column,
+  .right-column {
+    width: 100%;
+  }
+
+  .columns-container, .dashboard-container {
+    flex-direction: column;
+  }
+
+  .services-column {
+    .flex(row, space-between, center);
+
+    & #serviceIA {
+      display: none;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .header-container,
+  .columns-container,
+  .dashboard-container,
+  .footer-container {
+    width: 100%;
   }
 }
