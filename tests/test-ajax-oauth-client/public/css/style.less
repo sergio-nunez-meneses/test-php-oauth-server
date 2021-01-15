@@ -33,7 +33,7 @@ a {
 .header-container,
 .columns-container,
 .footer-container {
-  .size(56.25%, 100%);
+  .size(55%, 100%);
   margin: 0 auto;
   box-sizing: border-box;
 }
@@ -65,17 +65,71 @@ a {
 
 .left-column, .right-column, .services-column, .activities-column {
   box-sizing: border-box;
-  padding: 1.875rem;
+  padding: 2rem;
 }
 
 .left-column {
   .size(66.7%, auto);
   background-color: #5c2a2a;
+
+	& .retorik-title {
+		text-align: left;
+	}
+
+	& .login-container {
+		.flex(column, center, initial);
+		.size(100%, auto);
+
+		& .login-title, .status-container {
+			text-align: center;
+		}
+
+		& .login-input {
+			// .size(100%, 100%);
+			.margin-padding(0.5rem, 0.5rem);
+			background-color: #d8cccc;
+			color: #898383;
+			font-size: 1.188em;
+			transform: scale(1);
+			transition: transform .3s;
+
+			&:hover {
+				transform: scale(1.05);
+				transition: transform .5s;
+			}
+		}
+
+		& .request-button {
+      .size(100%, 100%);
+			.margin-padding(1rem, 0.5rem);
+      background-color: #4f3fb2;
+      color: #fff;
+      font-size: 1.188em;
+      cursor: pointer;
+    	transform: scale(1);
+      transition: transform .3s;
+
+      &:hover {
+    		transform: scale(1.05);
+        background-color: lighten(#4f3fb2, 5%);
+        transition: transform .5s;
+      }
+    }
+
+		& .status-container {
+			color: #f4df23;
+			font-size: 1.25em;
+		}
+	}
 }
 
 .right-column {
   .size(33.3%, auto);
   background-color: @thiner-column-color;
+
+	& .about-title, .about-text {
+		text-align: center;
+	}
 }
 
 .services-column {
@@ -130,10 +184,14 @@ a {
 }
 
 @media (max-width: 768px) {
+	.columns-container {
+    flex-direction: column;
+  }
+
   .header-container,
   .columns-container,
   .footer-container {
-    width: 95%;
+    width: 90%;
   }
 
   .left-column,
@@ -143,9 +201,13 @@ a {
     width: 100%;
   }
 
-  .columns-container {
-    flex-direction: column;
-  }
+	.retorik-title {
+		text-align: center !important;
+	}
+
+	.retorik-text {
+		display: none;
+	}
 
   .services-column {
     .flex(row, space-between, center);

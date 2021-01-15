@@ -31,21 +31,25 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
 
     <div class="columns-container">
       <main class="left-column">
-        <h2>Retorik The Emotional AI Platform</h2>
-        <p>Pour créer des experts digitaux et ainsi être plus proche des utilisateurs, Davi a développé une IA adaptée aux besoins des entreprises qui réalisent des tâches complexes au service des humains.</p>
+        <h2 class="retorik-title">Retorik The Emotional AI Platform</h2>
+        <p class="retorik-text">Pour créer des experts digitaux et ainsi être plus proche des utilisateurs, Davi a développé une IA adaptée aux besoins des entreprises qui réalisent des tâches complexes au service des humains.</p>
 
-        <h2>S'IDENTIFIER</h2>
-        <input id="username" type="text" name="username" value="username" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'username';}">
-        <input type="password" name="password" value="password" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'password';}">
-        <button type="button" name="request" value="POST">
-          ACCÉDER
-        </button>
+        <div class="login-container">
+          <h2 class="login-title">S'IDENTIFIER</h2>
+          <!-- form-element -->
+          <input id="username" class="login-input" type="text" name="username" value="nom d'utilisateur" onfocus="this.value = '';" onblur="if (this.value == '') this.value = 'nom d'utilisateur';">
+          <input class="login-input" type="password" name="password" value="mot de passe" onfocus="this.value = '';" onblur="if (this.value == '') this.value = 'mot de passe';">
+          <button id="submitButton" class="request-button" type="button" name="request" value="POST">
+            ACCÉDER
+          </button>
+
+          <div class="status-container">Passwords don’t match.</div>
       </main>
 
       <aside class="right-column">
-        <h2>NOTRE MÉTIER</h2>
-        <p>DAVI est un éditeur de logiciels en mode SaaS qui dispose des expertises dans les domaines de l’IA, de l’Affective Computing et des IHM.</p>
-        <P>Pour mener à bien ses missions, DAVI dispose de compétences en ingénierie cognitive, en développement d’applications logicielles et en développement 3D.</p>
+        <h2 class="about-title">NOTRE MÉTIER</h2>
+        <p class="about-text">DAVI est un éditeur de logiciels en mode SaaS qui dispose des expertises dans les domaines de l’IA, de l’Affective Computing et des IHM.</p>
+        <P class="about-text">Pour mener à bien ses missions, DAVI dispose de compétences en ingénierie cognitive, en développement d’applications logicielles et en développement 3D.</p>
       </aside>
     </div>
 
