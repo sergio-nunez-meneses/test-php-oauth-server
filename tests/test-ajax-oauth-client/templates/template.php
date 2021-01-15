@@ -50,19 +50,19 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
     </div>
 
     <div class="columns-container">
-      <main class="services-column">
+      <aside class="services-column">
         <a class="service-link" href="">Dashboard</a>
         <a id="serviceIA" class="service-link" href="">Services IA</a>
         <a class="service-link" href="">NPL OWL</a>
         <a class="service-link" href="">NPL DEEP</a>
         <a class="service-link" href="">FAQ</a>
         <a class="service-link" href="">TTS</a>
-      </main>
+      </aside>
 
-      <aside class="activities-column">
+      <main class="activities-column">
         <h2 class="activities-title">ACTIVITÉS RÉCENTES</h2>
         <p class="activities-message">Aucune activité récente n'est disponible.</p>
-      </aside>
+      </main>
     </div>
 
     <footer class="footer-container">
