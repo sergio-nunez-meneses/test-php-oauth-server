@@ -16,9 +16,9 @@
   left: @left;
 }
 
-.margin-padding(@margin, @padding) {
+.border-margin-padding(@border-radius, @margin, @padding) {
   border: none;
-  border-radius: 1px;
+  border-radius: @border-radius;
   margin: @margin 0;
   padding: @padding;
 }

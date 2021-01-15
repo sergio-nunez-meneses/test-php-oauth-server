@@ -29,10 +29,13 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
       </nav>
     </header>
 
+    <!-- authentication view -->
     <div class="columns-container">
       <main class="left-column">
-        <h2 class="retorik-title">Retorik The Emotional AI Platform</h2>
-        <p class="retorik-text">Pour créer des experts digitaux et ainsi être plus proche des utilisateurs, Davi a développé une IA adaptée aux besoins des entreprises qui réalisent des tâches complexes au service des humains.</p>
+        <div class="retorik-container">
+          <h2 class="retorik-title">Retorik The Emotional AI Platform</h2>
+          <p class="retorik-text">Pour créer des experts digitaux et ainsi être plus proche des utilisateurs, Davi a développé une IA adaptée aux besoins des entreprises qui réalisent des tâches complexes au service des humains.</p>
+        </div>
 
         <div class="login-container">
           <h2 class="login-title">S'IDENTIFIER</h2>
@@ -46,12 +49,15 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
       </main>
 
       <aside class="right-column">
-        <h2 class="about-title">NOTRE MÉTIER</h2>
-        <p class="about-text">DAVI est un éditeur de logiciels en mode SaaS qui dispose des expertises dans les domaines de l’IA, de l’Affective Computing et des IHM.</p>
-        <P class="about-text">Pour mener à bien ses missions, DAVI dispose de compétences en ingénierie cognitive, en développement d’applications logicielles et en développement 3D.</p>
+        <div class="about-container">
+          <h2 class="about-title">NOTRE MÉTIER</h2>
+          <p class="about-text">DAVI est un éditeur de logiciels en mode SaaS qui dispose des expertises dans les domaines de l’IA, de l’Affective Computing et des IHM.</p>
+          <P class="about-text">Pour mener à bien ses missions, DAVI dispose de compétences en ingénierie cognitive, en développement d’applications logicielles et en développement 3D.</p>
+        </div>
       </aside>
     </div>
 
+    <!-- services view -->
     <div class="columns-container">
       <aside class="services-column">
         <a class="service-link" href="">Dashboard</a>
