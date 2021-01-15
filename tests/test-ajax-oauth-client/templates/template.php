@@ -49,24 +49,24 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
       </aside>
     </div>
 
-    <div class="dashboard-container">
-      <aside class="services-column">
+    <div class="columns-container">
+      <main class="services-column">
         <a class="service-link" href="">Dashboard</a>
         <a id="serviceIA" class="service-link" href="">Services IA</a>
         <a class="service-link" href="">NPL OWL</a>
         <a class="service-link" href="">NPL DEEP</a>
         <a class="service-link" href="">FAQ</a>
         <a class="service-link" href="">TTS</a>
-      </aside>
+      </main>
 
-      <main class="activities-column">
+      <aside class="activities-column">
         <h2 class="activities-title">ACTIVITÉS RÉCENTES</h2>
         <p class="activities-message">Aucune activité récente n'est disponible.</p>
-      </main>
+      </aside>
     </div>
 
     <footer class="footer-container">
-      <p class="footer-text">Copyright © <a class="footer-text" href="https://davi.ai">DAVI</a> The Humanizers 2020</p>
+      <p class="footer-text">Copyright © <a class="footer-text" href="https://davi.ai">DAVI</a> The Humanizers • 2020</p>
     </footer>
 
     <!-- <script src="public/js/script.js"></script> -->
