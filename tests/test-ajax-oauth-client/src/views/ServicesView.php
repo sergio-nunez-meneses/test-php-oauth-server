@@ -25,7 +25,6 @@ class ServicesView
     <?php
     $response['html'] = ob_get_contents();
     ob_clean();
-    // return $response;
-    require 'templates/template.php';
+    return $response;
   }
 }

@@ -1,6 +1,5 @@
 <?php
-require 'include/class_autoloader.php';
 // require 'templates/template.php';
+require 'include/class_autoloader.php';
 
-AuthenticationView::display();
-// ServicesView::display();
+IndexController::query_router('services');
