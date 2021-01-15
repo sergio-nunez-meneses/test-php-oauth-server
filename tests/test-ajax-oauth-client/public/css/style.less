@@ -40,8 +40,18 @@ a {
 }
 
 .header-container {
-  .flex(row, center, center);
+  .flex(row, space-between, center);
+	padding: 0.5rem;
   background-color: @header-footer-color;
+
+	& .header-logo {
+		.size(100%, auto);
+    .flex(row, flex-start, center);
+
+		& #logo {
+			.size(4.5em, auto);
+		}
+	}
 
   & .header-items {
     .size(100%, auto);
@@ -52,10 +62,6 @@ a {
       font-size: 1.875rem;
       color: #fff;
       margin: 0.5rem 0;
-
-      & #logo {
-        .size(2em, auto);
-      }
     }
   }
 }
@@ -193,6 +199,10 @@ a {
   .footer-container {
     width: 90%;
   }
+
+	.header-items {
+		display: none !important;
+	}
 
   .left-column,
   .right-column,

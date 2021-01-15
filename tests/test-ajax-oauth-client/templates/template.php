@@ -20,10 +20,13 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
   <body>
 
     <header class="header-container">
-      <nav class="header-items">
+      <div class="header-logo">
         <a class="nav-item" href="/">
           <img id="logo" src="public/img/logo_davi.png" alt="logo">
         </a>
+      </div>
+      
+      <nav class="header-items">
         <a class="nav-item" href="#">A propos</a>
         <a class="nav-item" href="#">Contact</a>
       </nav>
