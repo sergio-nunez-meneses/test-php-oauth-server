@@ -1,5 +1,5 @@
 <?php
-require 'include/class_autoloader.php';
+// require 'include/class_autoloader.php';
 
 // handle cross origin resource sharing (CORS)
 header('Access-Control-Allow-Origin: *');
@@ -25,56 +25,16 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
           <img id="logo" src="public/img/logo_davi.png" alt="logo">
         </a>
       </div>
-      
+
       <nav class="header-items">
         <a class="nav-item" href="#">A propos</a>
         <a class="nav-item" href="#">Contact</a>
       </nav>
     </header>
 
-    <!-- authentication view -->
+    <!-- display view -->
     <div class="columns-container">
-      <main class="left-column">
-        <div class="retorik-container">
-          <h2 class="retorik-title">Retorik The Emotional AI Platform</h2>
-          <p class="retorik-text">Pour créer des experts digitaux et ainsi être plus proche des utilisateurs, Davi a développé une IA adaptée aux besoins des entreprises qui réalisent des tâches complexes au service des humains.</p>
-        </div>
-
-        <div class="login-container">
-          <h2 class="login-title">S'IDENTIFIER</h2>
-          <input id="username" class="login-input" type="text" name="username" value="nom d'utilisateur" onfocus="this.value = '';" onblur="if (this.value == '') this.value = 'nom d'utilisateur';">
-          <input class="login-input" type="password" name="password" value="mot de passe" onfocus="this.value = '';" onblur="if (this.value == '') this.value = 'mot de passe';">
-          <button id="requestButton" class="request-button" type="button" name="request" value="POST">
-            ACCÉDER
-          </button>
-
-          <div class="status-container">Passwords don’t match.</div>
-      </main>
-
-      <aside class="right-column">
-        <div class="about-container">
-          <h2 class="about-title">NOTRE MÉTIER</h2>
-          <p class="about-text">DAVI est un éditeur de logiciels en mode SaaS qui dispose des expertises dans les domaines de l’IA, de l’Affective Computing et des IHM.</p>
-          <P class="about-text">Pour mener à bien ses missions, DAVI dispose de compétences en ingénierie cognitive, en développement d’applications logicielles et en développement 3D.</p>
-        </div>
-      </aside>
-    </div>
-
-    <!-- services view -->
-    <div class="columns-container">
-      <aside class="services-column">
-        <a class="service-link" href="">Dashboard</a>
-        <a id="serviceIA" class="service-link" href="">Services IA</a>
-        <a class="service-link" href="">NPL OWL</a>
-        <a class="service-link" href="">NPL DEEP</a>
-        <a class="service-link" href="">FAQ</a>
-        <a class="service-link" href="">TTS</a>
-      </aside>
-
-      <main class="activities-column">
-        <h2 class="activities-title">ACTIVITÉS RÉCENTES</h2>
-        <p class="activities-message">Aucune activité récente n'est disponible.</p>
-      </main>
+      <?php echo $response['html']; ?>
     </div>
 
     <footer class="footer-container">
