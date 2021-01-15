@@ -8,6 +8,12 @@ body {
 }
 a {
   text-decoration: none;
+  transform: scale(1);
+  transition: transform .3s;
+}
+a:hover {
+  transform: scale(1.1);
+  transition: transform .5s;
 }
 .hidden {
   display: none;
@@ -42,7 +48,7 @@ a {
   margin: 0.5rem 0;
 }
 .header-container .header-items .nav-item #logo {
-  width: 3rem;
+  width: 2em;
   height: auto;
 }
 .columns-container {
@@ -67,13 +73,24 @@ a {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: initial;
+  align-items: inherit;
   width: 100%;
   height: auto;
 }
 .left-column .login-container .login-title,
 .left-column .login-container .status-container {
   text-align: center;
+}
+.left-column .login-container .login-input,
+.left-column .login-container .request-button {
+  font-size: 1.188em;
+  transform: scale(1);
+  transition: transform .3s;
+}
+.left-column .login-container .login-input:hover,
+.left-column .login-container .request-button:hover {
+  transform: scale(1.05);
+  transition: transform .5s;
 }
 .left-column .login-container .login-input {
   border: none;
@@ -82,32 +99,20 @@ a {
   padding: 0.5rem;
   background-color: #d8cccc;
   color: #898383;
-  font-size: 1.188em;
-  transform: scale(1);
-  transition: transform .3s;
-}
-.left-column .login-container .login-input:hover {
-  transform: scale(1.05);
-  transition: transform .5s;
 }
 .left-column .login-container .request-button {
   width: 100%;
   height: 100%;
   border: none;
   border-radius: 1px;
-  margin: 1rem 0;
+  margin: 1.188em 0;
   padding: 0.5rem;
   background-color: #4f3fb2;
   color: #fff;
-  font-size: 1.188em;
   cursor: pointer;
-  transform: scale(1);
-  transition: transform .3s;
 }
 .left-column .login-container .request-button:hover {
-  transform: scale(1.05);
   background-color: #5b4bbf;
-  transition: transform .5s;
 }
 .left-column .login-container .status-container {
   color: #f4df23;

@@ -36,10 +36,9 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
 
         <div class="login-container">
           <h2 class="login-title">S'IDENTIFIER</h2>
-          <!-- form-element -->
           <input id="username" class="login-input" type="text" name="username" value="nom d'utilisateur" onfocus="this.value = '';" onblur="if (this.value == '') this.value = 'nom d'utilisateur';">
           <input class="login-input" type="password" name="password" value="mot de passe" onfocus="this.value = '';" onblur="if (this.value == '') this.value = 'mot de passe';">
-          <button id="submitButton" class="request-button" type="button" name="request" value="POST">
+          <button id="requestButton" class="request-button" type="button" name="request" value="POST">
             ACCÉDER
           </button>
 

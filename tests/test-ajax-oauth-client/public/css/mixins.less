@@ -22,3 +22,13 @@
   margin: @margin 0;
   padding: @padding;
 }
+
+.scaling(@base, @amount) {
+  transform: scale(@base);
+  transition: transform .3s;
+
+  &:hover {
+    transform: scale(@amount);
+    transition: transform .5s;
+  }
+}

@@ -24,6 +24,7 @@ body {
 
 a {
   text-decoration: none;
+	.scaling(1, 1.1);
 }
 
 .hidden {
@@ -53,7 +54,7 @@ a {
       margin: 0.5rem 0;
 
       & #logo {
-        .size(3rem, auto);
+        .size(2em, auto);
       }
     }
   }
@@ -77,42 +78,33 @@ a {
 	}
 
 	& .login-container {
-		.flex(column, center, initial);
+		.flex(column, center, inherit);
 		.size(100%, auto);
 
 		& .login-title, .status-container {
 			text-align: center;
 		}
 
+		& .login-input, .request-button {
+			font-size: 1.188em;
+			.scaling(1, 1.05);
+		}
+
 		& .login-input {
-			// .size(100%, 100%);
 			.margin-padding(0.5rem, 0.5rem);
 			background-color: #d8cccc;
 			color: #898383;
-			font-size: 1.188em;
-			transform: scale(1);
-			transition: transform .3s;
-
-			&:hover {
-				transform: scale(1.05);
-				transition: transform .5s;
-			}
 		}
 
 		& .request-button {
       .size(100%, 100%);
-			.margin-padding(1rem, 0.5rem);
+			.margin-padding(1.188em, 0.5rem);
       background-color: #4f3fb2;
       color: #fff;
-      font-size: 1.188em;
       cursor: pointer;
-    	transform: scale(1);
-      transition: transform .3s;
 
       &:hover {
-    		transform: scale(1.05);
         background-color: lighten(#4f3fb2, 5%);
-        transition: transform .5s;
       }
     }
 
