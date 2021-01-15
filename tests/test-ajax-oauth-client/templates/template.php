@@ -1,6 +1,4 @@
 <?php
-// require 'include/class_autoloader.php';
-
 // handle cross origin resource sharing (CORS)
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: OPTIONS, GET, POST');
@@ -33,14 +31,12 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
     </header>
 
     <!-- display view -->
-    <div class="columns-container">
-      <?php echo $response['html']; ?>
-    </div>
+    <div id="contentContainer" class="columns-container"></div>
 
     <footer class="footer-container">
       <p class="footer-text">Copyright © <a class="footer-text" href="https://davi.ai">DAVI</a> The Humanizers • 2020</p>
     </footer>
 
-    <!-- <script src="public/js/script.js"></script> -->
+    <script src="public/js/script.js"></script>
   </body>
 </html>

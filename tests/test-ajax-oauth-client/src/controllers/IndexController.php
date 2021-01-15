@@ -18,6 +18,9 @@ class IndexController
       $response = AuthenticationView::display();
     }
 
-    require 'templates/template.php';
+    if (!empty($response))
+    {
+      echo json_encode($response);
+    }
   }
 }
