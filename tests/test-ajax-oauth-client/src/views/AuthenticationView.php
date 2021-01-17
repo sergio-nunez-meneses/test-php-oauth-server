@@ -16,9 +16,9 @@ class AuthenticationView
 
       <div class="login-container">
         <h2 class="login-title">S'IDENTIFIER</h2>
-        <input id="username" class="login-input" type="text" name="username" value="nom d'utilisateur" onfocus="this.value = '';" onblur="if (this.value == '') this.value = 'nom d'utilisateur';">
-        <input class="login-input" type="password" name="password" value="mot de passe" onfocus="this.value = '';" onblur="if (this.value == '') this.value = 'mot de passe';">
-        <button id="requestButton" class="request-button" type="button" name="request" value="POST">
+        <input id="username" class="login-input" type="text" name="username" value="nom d'utilisateur" onfocus="this.value = '';" onblur="if (this.value == '') { this.value = 'nom d\'utilisateur'; }">
+        <input class="login-input" type="password" name="password" value="mot de passe" onfocus="this.value = '';" onblur="if (this.value == '') { this.value = 'mot de passe'; }">
+        <button class="request-button" type="button" name="request" value="POST">
           ACCÉDER
         </button>
 
@@ -35,7 +35,9 @@ class AuthenticationView
 
     <?php
     $response['html'] = ob_get_contents();
+
     ob_clean();
-    return $response;
+
+    return json_encode($response);
   }
 }

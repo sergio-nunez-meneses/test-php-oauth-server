@@ -31,7 +31,7 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
     </header>
 
     <!-- display view -->
-    <div id="contentContainer" class="columns-container"></div>
+    <div class="columns-container"></div>
 
     <footer class="footer-container">
       <p class="footer-text">Copyright © <a class="footer-text" href="https://davi.ai">DAVI</a> The Humanizers • 2020</p>

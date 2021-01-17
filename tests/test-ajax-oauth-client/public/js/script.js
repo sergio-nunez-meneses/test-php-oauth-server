@@ -1,5 +1,6 @@
-// init web application
-ajax('login', display);
+const buttons = getBy('tag', 'button');
+var columnsContainer = getBy('class', 'columns-container')[0];
+console.log(buttons);
 
 function getBy(attribute, value) {
   if (attribute === 'tag') {
@@ -20,6 +21,7 @@ function ajax(data = null, callback) {
   xhr.open('POST', 'ajax/query_router.php');
   xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
   xhr.send(encodedData);
+  xhr.onerror = error;
   xhr.onload = callback;
 }
 
@@ -37,5 +39,38 @@ function display() {
     return;
   }
 
-  getBy('id', 'contentContainer').innerHTML = response.html;
+  columnsContainer.innerHTML = response.html;
 }
+
+function error(errorMessage) {
+  console.log(errorMessage);
+
+  var statusContainer = getBy('class', 'status-container')[0];
+
+  statusContainer.innerHTML = errorMessage;
+}
+
+// init web application
+ajax('login', display);
+
+// eventListeners
+setTimeout(() => {
+  for (let button of buttons) {
+    console.log(button);
+
+    button.addEventListener('click', () => {
+      var action = button.name,
+        method = button.value;
+
+      if (action === 'request') {
+        var username = getBy('name', 'username').value,
+          password = getBy('name', 'password').value,
+          clientCredentials = username + ':' + password;
+      }
+
+      var encodedCredentials = typeof clientCredentials !== 'undefined' ? btoa(clientCredentials) : '';
+
+      alert(encodedCredentials);
+    });
+  }
+}, 500);
