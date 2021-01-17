@@ -22,7 +22,7 @@ class AuthenticationView
           ACCÉDER
         </button>
 
-        <div class="status-container">Passwords don’t match.</div>
+        <div class="status-container"></div>
     </main>
 
     <aside class="right-column">

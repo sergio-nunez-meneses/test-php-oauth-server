@@ -8,7 +8,7 @@ class ResponseController
     // destroy authentication cookie
     if (isset($_COOKIE['authentication_cookie']))
     {
-      self::delete_cookie($$_COOKIE['authentication_cookie']);
+      self::delete_cookie($_COOKIE['authentication_cookie']);
     }
 
     // client: login and request authentication token
@@ -56,6 +56,33 @@ class ResponseController
     }
 
     return self::response_handler('validated', $authorization_token);
+  }
+
+  public static function revoke_token()
+  {
+    if (!isset($_COOKIE['authentication_cookie'])) {
+      return 'Authentication token not found.';
+    }
+
+    // client: request revoke authentication token
+    $revoked_tokens = RequestController::request('http://ser.local/auth/revoke_token', $_COOKIE['authentication_cookie']);
+    // $revoked_tokens = CurlController::request('https://auth.davi.fr/auth/revoke_token', $_COOKIE['authentication_cookie']);
+
+    // return error and stop script
+    $error = self::get_error($revoked_tokens);
+
+    if ($error)
+    {
+      return $error;
+    }
+
+    // destroy authentication cookie
+    if (isset($_COOKIE['authentication_cookie']))
+    {
+      self::delete_cookie($_COOKIE['authentication_cookie']);
+    }
+
+    return self::response_handler('revoked', 'Authentication and authorization tokens has been revoked.');
   }
 
   private static function delete_cookie($cookie)

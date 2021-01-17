@@ -21,6 +21,10 @@ class IndexController
     {
       $response = ResponseController::validate_token();
     }
+    elseif ($request === 'revoke')
+    {
+      $response = ResponseController::revoke_token();
+    }
     else
     {
       $response = AuthenticationView::display();

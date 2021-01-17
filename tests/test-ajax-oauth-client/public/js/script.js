@@ -1,5 +1,6 @@
 const buttons = getBy('tag', 'button');
-var columnsContainer = getBy('class', 'columns-container')[0];
+var navItem = getBy('class', 'nav-item'),
+  columnsContainer = getBy('class', 'columns-container')[0];
 
 function getBy(attribute, value) {
   if (attribute === 'tag') {
@@ -63,6 +64,7 @@ function getResponse() {
 
   if (typeof response.response_type !== 'undefined' && response.response_type === 'error') {
     alert(response.response_value);
+    error(response.response_value);
     return;
   }
 
@@ -76,8 +78,23 @@ function callback(response) {
     request('validate', 'POST');
   } else if (response.type === 'validated') {
     request('services', 'POST');
+    servicesHeader(response.type);
   } else if (response.type === 'revoked') {
-    request('login', 'POST');
+    // request('login', 'POST');
+    // servicesHeader(response.type);
+    window.location.href = '/';
+  }
+}
+
+function servicesHeader(responseType) {
+  if (responseType === 'validated') {
+    navItem[1].innerHTML = 'Mon compte';
+    navItem[2].classList.add('hidden');
+    navItem[3].classList.remove('hidden');
+  } else if (responseType === 'revoked') {
+    navItem[1].innerHTML = 'À propos';
+    navItem[2].classList.remove('hidden');
+    navItem[3].classList.add('hidden');
   }
 }
 
