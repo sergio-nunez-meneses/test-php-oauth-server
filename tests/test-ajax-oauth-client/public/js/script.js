@@ -54,7 +54,7 @@ function request(action, method) {
 
 function getResponse() {
   if (this.responseText.charAt(0) !== '{') {
-    console.log('not JSON');
+    alert(this.responseText);
     return;
   }
 
@@ -70,14 +70,14 @@ function getResponse() {
 }
 
 function callback(response) {
-  if (response.type === 'authenticated') {
+  if (response.callback === 'display') {
+    columnsContainer.innerHTML = response.html;
+  } else if (response.type === 'authenticated') {
     request('validate', 'POST');
   } else if (response.type === 'validated') {
     request('services', 'POST');
   } else if (response.type === 'revoked') {
     request('login', 'POST');
-  } else if (response.callback === 'display') {
-    columnsContainer.innerHTML = response.html;
   }
 }
 
