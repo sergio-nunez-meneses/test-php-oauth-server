@@ -23,7 +23,7 @@ function ajax(method, data) {
 }
 
 function request(action, method) {
-  const actions = ['request', 'validate', 'redirect', 'revoke', 'login', 'service'],
+  const actions = ['request', 'validate', 'redirect', 'revoke', 'login', 'services'],
     methods = ['GET', 'POST'];
 
   if (actions.indexOf(action) === -1) {
@@ -66,14 +66,18 @@ function getResponse() {
     return;
   }
 
-  callback(response, response.callback);
+  callback(response);
 }
 
-function callback(response, callback) {
-  if (callback === 'display') {
+function callback(response) {
+  if (response.type === 'authenticated') {
+    request('validate', 'POST');
+  } else if (response.type === 'validated') {
+    request('services', 'POST');
+  } else if (response.type === 'revoked') {
+    request('login', 'POST');
+  } else if (response.callback === 'display') {
     columnsContainer.innerHTML = response.html;
-  } else if (callback === 'validate') {
-    alert('validating...');
   }
 }
 

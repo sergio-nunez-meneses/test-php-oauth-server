@@ -17,6 +17,10 @@ class IndexController
     {
       $response = ResponseController::request_token($inputs);
     }
+    elseif ($request === 'validate')
+    {
+      $response = ResponseController::validate_token();
+    }
     else
     {
       $response = AuthenticationView::display();

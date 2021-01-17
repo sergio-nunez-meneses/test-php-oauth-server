@@ -30,12 +30,32 @@ class ResponseController
     // set cookie and return authentication token
     if (setcookie($cookie_name, $cookie_value, $exp, '/')) {
       $response = [
-        'authenticated' => true,
-        'authentication_token' => $authentication_token,
-        'callback' => 'validate'
+        'type' => 'authenticated',
+        'authentication_token' => $authentication_token
       ];
 
       return json_encode($response);
     }
+  }
+
+  public static function validate_token()
+  {
+    if (!isset($_COOKIE['authentication_cookie'])) {
+      exit("Authentication token not found.\n");
+    }
+
+    // client: request authentication token validation
+    $authorization_token = RequestController::request('http://service.local/validate', $_COOKIE['authentication_cookie']);
+
+    // return error and stop script
+    if (substr($authorization_token, 0, 1) === '{' || substr($authorization_token, 0, 1) === '<') {
+      return $authentication_token;
+    }
+    $response = [
+      'type' => 'validated',
+      'authorization_token' => $authorization_token,
+    ];
+
+    return json_encode($response);
   }
 }
