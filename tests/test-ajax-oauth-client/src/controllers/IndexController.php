@@ -3,25 +3,24 @@
 class IndexController
 {
 
-  public static function query_router($query, $inputs = false)
+  public static function request_router($request, $inputs = false)
   {
-    if ($query === 'login')
+    if ($request === 'login')
     {
       $response = AuthenticationView::display();
     }
-    elseif ($query === 'services')
+    elseif ($request === 'services')
     {
       $response = ServicesView::display();
+    }
+    elseif ($request === 'request')
+    {
+      $response = ResponseController::request_token($inputs);
     }
     else
     {
       $response = AuthenticationView::display();
     }
-
-    // if (!empty($response))
-    // {
-    //   echo json_encode($response);
-    // }
 
     echo $response;
   }

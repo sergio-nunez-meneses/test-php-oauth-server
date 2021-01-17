@@ -35,6 +35,7 @@ class AuthenticationView
 
     <?php
     $response['html'] = ob_get_contents();
+    $response['callback'] = 'display';
 
     ob_clean();
 

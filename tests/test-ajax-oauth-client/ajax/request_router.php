@@ -2,4 +2,4 @@
 chdir('..');
 require 'include/class_autoloader.php';
 
-IndexController::query_router($_POST['query'], $_POST);
+IndexController::request_router($_POST['request'], $_POST);

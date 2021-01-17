@@ -1,6 +1,5 @@
 const buttons = getBy('tag', 'button');
 var columnsContainer = getBy('class', 'columns-container')[0];
-console.log(buttons);
 
 function getBy(attribute, value) {
   if (attribute === 'tag') {
@@ -14,18 +13,46 @@ function getBy(attribute, value) {
   }
 }
 
-function ajax(data = null, callback) {
-  var encodedData = 'query=' + data,
-    xhr = new XMLHttpRequest();
-
-  xhr.open('POST', 'ajax/query_router.php');
+function ajax(method, data) {
+  var xhr = new XMLHttpRequest();
+  xhr.open(method, 'ajax/request_router.php');
   xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-  xhr.send(encodedData);
+  xhr.send(data);
   xhr.onerror = error;
-  xhr.onload = callback;
+  xhr.onload = getResponse;
 }
 
-function display() {
+function request(action, method) {
+  const actions = ['request', 'validate', 'redirect', 'revoke', 'login', 'service'],
+    methods = ['GET', 'POST'];
+
+  if (actions.indexOf(action) === -1) {
+    alert('Invalid token request.');
+    return;
+  }
+
+  if (methods.indexOf(method) === -1) {
+    alert('Invalid HTTP method.');
+    return;
+  }
+
+  if (action === 'request') {
+    var username = getBy('name', 'username').value,
+      password = getBy('name', 'password').value,
+      clientCredentials = username + ':' + password,
+      encodedCredentials = btoa(clientCredentials);
+  }
+
+  var data = 'request=' + action;
+
+  if (typeof encodedCredentials !== 'undefined') {
+    data += '&&client_credentials=' + encodedCredentials;
+  }
+
+  ajax(method, data);
+}
+
+function getResponse() {
   if (this.responseText.charAt(0) !== '{') {
     console.log('not JSON');
     return;
@@ -39,38 +66,35 @@ function display() {
     return;
   }
 
-  columnsContainer.innerHTML = response.html;
+  callback(response, response.callback);
+}
+
+function callback(response, callback) {
+  if (callback === 'display') {
+    columnsContainer.innerHTML = response.html;
+  } else if (callback === 'validate') {
+    alert('validating...');
+  }
 }
 
 function error(errorMessage) {
   console.log(errorMessage);
 
   var statusContainer = getBy('class', 'status-container')[0];
-
   statusContainer.innerHTML = errorMessage;
 }
 
 // init web application
-ajax('login', display);
+request('login', 'POST');
 
 // eventListeners
 setTimeout(() => {
   for (let button of buttons) {
-    console.log(button);
-
     button.addEventListener('click', () => {
       var action = button.name,
         method = button.value;
 
-      if (action === 'request') {
-        var username = getBy('name', 'username').value,
-          password = getBy('name', 'password').value,
-          clientCredentials = username + ':' + password;
-      }
-
-      var encodedCredentials = typeof clientCredentials !== 'undefined' ? btoa(clientCredentials) : '';
-
-      alert(encodedCredentials);
+      request(action, method);
     });
   }
 }, 500);
