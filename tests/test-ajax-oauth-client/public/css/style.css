@@ -6,12 +6,14 @@ body {
   font-size: 1em;
   color: #fff;
 }
-a {
+a,
+#logoutButton {
   text-decoration: none;
   transform: scale(1);
   transition: transform .3s;
 }
-a:hover {
+a:hover,
+#logoutButton:hover {
   transform: scale(1.1);
   transition: transform .5s;
 }
@@ -59,6 +61,11 @@ a:hover {
   font-size: 1.875rem;
   color: #fff;
   margin: 0.5rem 0;
+}
+.header-container .header-items #logoutButton {
+  border: none;
+  outline: none;
+  background: transparent;
 }
 .columns-container {
   display: flex;

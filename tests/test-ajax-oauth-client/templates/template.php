@@ -27,7 +27,7 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
       <nav class="header-items">
         <a class="nav-item" href="#">A propos</a>
         <a class="nav-item" href="#">Contact</a>
-        <button class="hidden nav-item" type="button" name="revoke" value="POST" onclick="request(this.name, this.value);">
+        <button id="logoutButton" class="hidden nav-item" type="button" name="revoke" value="POST" onclick="request(this.name, this.value);">
           Déconnexion
         </button>
       </nav>

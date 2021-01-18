@@ -93,7 +93,7 @@ class ResponseController
 
   private static function get_error($token) {
     if (substr($token, 0, 1) === '{' || substr($token, 0, 1) === '<') {
-      return true;
+      return $token;
     }
   }
 

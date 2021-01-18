@@ -54,13 +54,15 @@ function request(action, method) {
 }
 
 function getResponse() {
+  console.log(this.responseText);
+
   if (this.responseText.charAt(0) !== '{') {
     alert(this.responseText);
+    error(this.responseText);
     return;
   }
 
   let response = JSON.parse(this.responseText);
-  console.log(response);
 
   if (typeof response.response_type !== 'undefined' && response.response_type === 'error') {
     alert(response.response_value);
