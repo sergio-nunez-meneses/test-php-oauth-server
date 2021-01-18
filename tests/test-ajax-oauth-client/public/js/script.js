@@ -78,15 +78,14 @@ function callback(response) {
     request('validate', 'POST');
   } else if (response.type === 'validated') {
     request('services', 'POST');
-    servicesHeader(response.type);
+    chageNavbar(response.type);
   } else if (response.type === 'revoked') {
-    // request('login', 'POST');
-    // servicesHeader(response.type);
-    window.location.href = '/';
+    request('login', 'POST');
+    chageNavbar(response.type);
   }
 }
 
-function servicesHeader(responseType) {
+function chageNavbar(responseType) {
   if (responseType === 'validated') {
     navItem[1].innerHTML = 'Mon compte';
     navItem[2].classList.add('hidden');
@@ -107,15 +106,3 @@ function error(errorMessage) {
 
 // init web application
 request('login', 'POST');
-
-// eventListeners
-setTimeout(() => {
-  for (let button of buttons) {
-    button.addEventListener('click', () => {
-      var action = button.name,
-        method = button.value;
-
-      request(action, method);
-    });
-  }
-}, 500);

@@ -18,7 +18,7 @@ class AuthenticationView
         <h2 class="login-title">S'IDENTIFIER</h2>
         <input id="username" class="login-input" type="text" name="username" value="nom d'utilisateur" onfocus="this.value = '';" onblur="if (this.value == '') { this.value = 'nom d\'utilisateur'; }">
         <input class="login-input" type="password" name="password" value="mot de passe" onfocus="this.value = '';" onblur="if (this.value == '') { this.value = 'mot de passe'; }">
-        <button class="request-button" type="button" name="request" value="POST">
+        <button class="request-button" type="button" name="request" value="POST" onclick="request(this.name, this.value);">
           ACCÉDER
         </button>
 
