@@ -1,6 +1,9 @@
-const buttons = getBy('tag', 'button');
 var navItem = getBy('class', 'nav-item'),
-  columnsContainer = getBy('class', 'columns-container')[0];
+  columnsContainer = getBy('class', 'columns-container')[0],
+  sidenavItem = getBy('class', 'sidenav-item');
+
+sidenavItem[2].classList.add('hidden');
+sidenavItem[3].classList.add('hidden');
 
 function getBy(attribute, value) {
   if (attribute === 'tag') {
@@ -47,7 +50,7 @@ function request(action, method) {
   var data = 'request=' + action;
 
   if (typeof encodedCredentials !== 'undefined') {
-    data += '&&client_credentials=' + encodedCredentials;
+    data += '&client_credentials=' + encodedCredentials;
   }
 
   ajax(method, data);
@@ -80,30 +83,47 @@ function callback(response) {
     request('validate', 'POST');
   } else if (response.type === 'validated') {
     request('services', 'POST');
-    chageNavbar(response.type);
+    changeNavbar(response.type);
   } else if (response.type === 'revoked') {
     request('login', 'POST');
-    chageNavbar(response.type);
+    changeNavbar(response.type);
   }
 }
 
-function chageNavbar(responseType) {
+function changeNavbar(responseType) {
   if (responseType === 'validated') {
     navItem[1].innerHTML = 'Mon compte';
+    navItem[1].style.width = 'max-content';
     navItem[2].classList.add('hidden');
     navItem[3].classList.remove('hidden');
+
+    sidenavItem[2].classList.remove('hidden');
+    sidenavItem[3].classList.remove('hidden');
+    sidenavItem[0].classList.add('hidden');
+    sidenavItem[1].classList.add('hidden');
   } else if (responseType === 'revoked') {
     navItem[1].innerHTML = 'À propos';
     navItem[2].classList.remove('hidden');
     navItem[3].classList.add('hidden');
+
+    sidenavItem[2].classList.add('hidden');
+    sidenavItem[3].classList.add('hidden');
+    sidenavItem[0].classList.remove('hidden');
+    sidenavItem[1].classList.remove('hidden');
   }
 }
 
 function error(errorMessage) {
-  console.log(errorMessage);
-
   var statusContainer = getBy('class', 'status-container')[0];
   statusContainer.innerHTML = errorMessage;
+}
+
+function openNav() {
+  getBy('id', 'mySidenav').style.width = '100%';
+}
+
+function closeNav() {
+  getBy('id', 'mySidenav').style.width = '0';
 }
 
 // init web application

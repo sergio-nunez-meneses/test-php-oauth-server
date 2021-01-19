@@ -3,22 +3,25 @@ body {
 }
 body {
   background-color: #ccbebe;
+  font-family: 'Roboto', sans-serif;
   font-size: 1em;
   color: #fff;
 }
 a,
-#logoutButton {
+#logoutButton,
+.sidenav-item {
   text-decoration: none;
   transform: scale(1);
   transition: transform .3s;
 }
 a:hover,
-#logoutButton:hover {
+#logoutButton:hover,
+.sidenav-item:hover {
   transform: scale(1.1);
   transition: transform .5s;
 }
 .hidden {
-  display: none;
+  display: none !important;
 }
 .header-container,
 .columns-container,
@@ -61,6 +64,9 @@ a:hover,
   font-size: 1.875rem;
   color: #fff;
   margin: 0.5rem 0;
+}
+.header-container .header-items > a:last-child {
+  display: none;
 }
 .header-container .header-items #logoutButton {
   border: none;
@@ -189,6 +195,51 @@ a:hover,
 .footer-container .footer-text {
   color: #fff;
 }
+.sidenav {
+  width: 0;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding-top: 60px;
+  z-index: 1;
+  overflow-x: hidden;
+  background-color: #111;
+  text-align: center;
+  transition: 0.5s;
+}
+.sidenav a {
+  display: block;
+  padding: 8px 8px 8px 32px;
+  font-size: 25px;
+  color: #818181;
+  text-decoration: none;
+  transition: 0.3s;
+}
+.sidenav a :hover {
+  color: #f1f1f1;
+}
+.sidenav button {
+  border: none;
+  outline: none;
+  padding: 8px 8px 8px 32px;
+  background: transparent;
+  font-size: 25px;
+  color: #818181;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.sidenav button :hover {
+  color: #f1f1f1;
+}
+.sidenav .closebtn {
+  position: absolute;
+  top: 0;
+  left: auto;
+  right: 25px;
+  margin-left: 50px;
+  font-size: 36px;
+}
 @media (max-width: 1200px) {
   .header-container,
   .columns-container,
@@ -213,6 +264,14 @@ a:hover,
     width: 90%;
   }
   .header-items {
+    justify-content: flex-end !important;
+  }
+  .header-items > a:last-child {
+    display: block !important;
+    align-self: flex-end;
+  }
+  .header-items > a:not(:last-child),
+  .header-items #logoutButton {
     display: none !important;
   }
   .left-column,

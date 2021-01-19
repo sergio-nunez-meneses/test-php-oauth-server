@@ -11,10 +11,10 @@ class ServicesView
     <aside class="services-column">
       <a class="service-link" href="">Dashboard</a>
       <a id="serviceIA" class="service-link" href="">Services IA</a>
-      <a class="service-link" href="">NPL OWL</a>
-      <a class="service-link" href="">NPL DEEP</a>
-      <a class="service-link" href="">FAQ</a>
-      <a class="service-link" href="">TTS</a>
+      <a class="service-link" href="#">NPL OWL</a>
+      <a class="service-link" href="#">NPL DEEP</a>
+      <a class="service-link" href="#">FAQ</a>
+      <a class="service-link" href="#">TTS</a>
     </aside>
 
     <main class="activities-column">

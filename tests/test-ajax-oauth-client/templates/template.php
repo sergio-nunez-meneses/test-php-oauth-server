@@ -12,6 +12,8 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="Sergio NUNEZ MENESES">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,500;1,700;1,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="public/css/style.css">
     <title>OAuth Client Application</title>
   </head>
@@ -30,7 +32,18 @@ header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
         <button id="logoutButton" class="hidden nav-item" type="button" name="revoke" value="POST" onclick="request(this.name, this.value);">
           Déconnexion
         </button>
+        <a class="nav-item" href="#" style="font-size:30px;cursor:pointer" onclick="openNav()">&#9776;</a>
       </nav>
+
+      <div id="mySidenav" class="sidenav">
+        <a href="#" class="closebtn" onclick="closeNav()">&times;</a>
+        <a class="sidenav-item" href="#">A propos</a>
+        <a class="sidenav-item" href="#">Contact</a>
+        <a class="sidenav-item" href="#">Mon compte</a>
+        <button class="sidenav-item" type="button" name="revoke" value="POST" onclick="request(this.name, this.value);">
+          Déconnexion
+        </button>
+      </div>
     </header>
 
     <!-- display view -->
